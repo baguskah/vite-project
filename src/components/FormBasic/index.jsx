@@ -5,7 +5,7 @@ const FormBasic = () => {
     const [nickname, setNickname] = useState("")
 
     const handleSubmit = (e) => {
-        console.log("triggered")
+        console.log(e)
     }
 
     const handleChange = (e) => {

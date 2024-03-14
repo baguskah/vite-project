@@ -1,0 +1,44 @@
+.button {
+    min-height: 20px;
+    min-width: 40px;
+    height: 70%;
+    width: 70%;
+    color: #fff;
+    border: 0px;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ff9900 !important;
+  }
+  
+  .button:focus {
+    outline: 0;
+  }
+  
+  .message {
+    grid-column: 1 / 4;
+    align-content: center;
+    font-size: 1rem;
+    min-height: 1.4rem;
+    width: 80%;
+    height: 80%;
+    color: red;
+    font-weight: bold;
+  }
+  
+  .number {
+    width: calc(40px + 2vmin);
+    color: #fff;
+  }
+  
+  .quantity-selector {
+    max-width: 100px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    justify-items: center;
+    user-select: none;
+    text-align: center;
+  }
+  
