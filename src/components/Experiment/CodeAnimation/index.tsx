@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useLayoutEffect, useState } from "react";
 import AceEditor from "react-ace";
 import { Flipper, Flipped } from "react-flip-toolkit";
 import DiffMatchPatch from "diff-match-patch";
@@ -8,6 +8,10 @@ import * as prettierPluginBabel from "prettier/plugins/babel";
 import * as prettierPluginEstree from "prettier/plugins/estree";
 import hljs from 'highlight.js';
 import "highlight.js/styles/atom-one-dark.css";
+
+import aceTokenizer from "ace-code/src/ext/simple_tokenizer"
+import { JavaScriptHighlightRules } from "ace-code/src/mode/javascript_highlight_rules";
+import { DOMData, animateDOMAppear, animateDOMMove, dataExample, selectElementsInSequence } from './helpers/selectElementInSequence'
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-one_dark";
@@ -26,8 +30,8 @@ const normalizeHTML = (text: string) => {
 const dmp = new DiffMatchPatch();
 
 const CodeAnimation = () => {
-  const [output, setOutput] = useState<any>([]);
-  
+  const [outputDiff, setOutputDiff] = useState<any>([]);
+
   const [upEditorCode, setUpEditorCode] = useState(`const isExample = animations.some(() => {})`);
   const [bottomEditorCode, setBottomEditorCode] = useState(`const isExample = animations.some((animation) => {
   return animation.looksAwesome()
@@ -37,22 +41,25 @@ const CodeAnimation = () => {
   const [set, setSet] = useState()
 
   const beforeRef = useRef();
-  const editorRef = useRef()
+  const editorRef = useRef();
 
+  /**
+   * Area Result
+   */
+
+  const befResultRef = useRef()
+  const aftResultRef = useRef()
+  const containerRef = useRef()
+
+
+  /**
+     * End Result
+     */
 
   const [flipperData, setFlipperData] = useState([]);
 
 
-  useEffect(() => {
-    const innerHTMLBef = beforeRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
-    const innerHTML = editorRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
 
-
-    if (innerHTML) {
-      setBefore(innerHTMLBef)
-      setSet(innerHTML)
-    }
-  }, [])
 
   const doPettier = async () => {
     const prettyPrevCode = await prettier.format(upEditorCode, {
@@ -72,38 +79,137 @@ const CodeAnimation = () => {
   }
 
   const doAnimation = () => {
-    // const giveIdForEachData = output.map((v, i) => [...v, i]);
-    // const filterInitialData = giveIdForEachData.filter((v) => v[0] !== 1);
-    // const showAllData = giveIdForEachData.filter((v) => v[0] !== -1);
+    const htmlBefore = befResultRef.current as unknown as HTMLElement;
+    const htmlAfter = aftResultRef.current as unknown as HTMLElement;
+    const htmlContainer = containerRef.current as unknown as HTMLElement;
+    const containerPosition = htmlContainer.getBoundingClientRect()
 
-    // setFlipperData(filterInitialData);
+    const listNodeMoving: any = [];
+    const listNodeAppear: any = [];
 
-    // setTimeout(() => {
-    //   setFlipperData(showAllData);
-    // }, 1000);
+    /** Comparation Engine Start */
+    const joinedDiff = outputDiff.map(v => v[1]).join("");
+    const tokenizeunionDiff = aceTokenizer.tokenize(joinedDiff, new JavaScriptHighlightRules());
+    const tokenizeValueBefore = aceTokenizer.tokenize(upEditorCode, new JavaScriptHighlightRules());
+    const tokenizeValueAfter = aceTokenizer.tokenize(bottomEditorCode, new JavaScriptHighlightRules());
+    /** Comparation Engine End */
+
+    outputDiff.forEach(element => {
+      const isPersist = element[0] === 0;
+      const isNew = element[0] === 1;
+      const isRemove = element[0] === -1
+
+      /** This token not fully match with reality TODO:! */
+      const codeValue = element[1] as string;
+
+      const breakDown = aceTokenizer.tokenize(codeValue, new JavaScriptHighlightRules());
+      console.log('debug breakDown', breakDown);
+
+      const listClassAndValue: DOMData[] = [];
+
+      // filter listArray, eliminate Token Result that only give empty array
+      breakDown.forEach(arr => {
+        if (arr.length > 0) {
+          arr.forEach(objToken => {
+            if (objToken.className !== undefined) {
+              listClassAndValue.push(objToken)
+            }
+          })
+        }
+      })
+
+      /**List yang bertahan dan pindah 
+       * 1. Bentuk Dom dengan tokenizer
+       * 2. Capture Position Sebelum ambil getBoundingClientRect()
+       * 3. Capture Position Sesudah ambil getBoundingClientRect()
+      */
+      if (isPersist) {
+        const searchBefore = selectElementsInSequence(listClassAndValue, htmlBefore);
+        const searchAfter = selectElementsInSequence(listClassAndValue, htmlAfter)
+
+
+        const reNormalized = listClassAndValue.map((l, i) => {
+          const domBefore = searchBefore?.[i];
+          const positionBefore = domBefore?.position;
+
+          const domAfter = searchAfter?.[i];
+          const positionAfter = domAfter?.position;
+
+          return {
+            ...l,
+            domBefore,
+            domAfter,
+            positionBefore,
+            positionAfter
+          }
+        })
+
+        reNormalized.forEach(nd => {
+          listNodeMoving.push(nd)
+        })
+      }
+
+      if (isNew) {
+        // Because new is only in after DOM
+        const searchAfter = selectElementsInSequence(listClassAndValue, htmlAfter)
+        const reNormalized = listClassAndValue.map((l, i) => {
+
+          const domAfter = searchAfter?.[i];
+          const positionAfter = domAfter?.position;
+
+          return {
+            ...l,
+            domAfter,
+            positionAfter
+          }
+        })
+        reNormalized.forEach(nd => {
+          listNodeAppear.push(nd)
+        })
+      }
+
+
+
+    });
+
+    if (listNodeMoving.length === 0) {
+      return
+    }
+
+
+    /** Animate Moving */
+    listNodeMoving.forEach(chlNode => {
+      if (chlNode.domAfter) {
+        animateDOMMove(chlNode.domAfter.node, chlNode.positionBefore, chlNode.positionAfter, containerPosition)
+      }
+    });
+
+    /** Animate Appear */
+    listNodeAppear.forEach(chlNode => {
+      if (chlNode.domAfter) {
+        animateDOMAppear(chlNode.domAfter.node, chlNode.positionAfter, containerPosition)
+      }
+    });
   };
 
   const handleRunCode = async () => {
+    const innerHTMLBef = beforeRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
+    const innerHTML = editorRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
 
-    // const prettyPrevCode = await prettier.format(upEditorCode, {
-    //   semi: true,
-    //   parser: "babel",
-    //   plugins: [prettierPluginBabel, prettierPluginEstree],
-    // });
 
-    // const prettyAfterCode = await prettier.format(bottomEditorCode, {
-    //   semi: true,
-    //   parser: "babel",
-    //   plugins: [prettierPluginBabel, prettierPluginEstree],
-    // });
-
-    // const highlightedCodeBefore = hljs.highlight(upEditorCode, { language: 'javascript' }).value
-    // const highlightedCodeAfter = hljs.highlight(bottomEditorCode, { language: 'javascript' }).value
+    if (innerHTML) {
+      setBefore(innerHTMLBef)
+      setSet(innerHTML)
+    }
 
     const calculateDiff = dmp.diff_main(upEditorCode, bottomEditorCode);
-    console.log('debug calculateDiff', calculateDiff);
-    setOutput(calculateDiff);
+    setOutputDiff(calculateDiff);
   };
+
+  useEffect(() => {
+    const calculateDiff = dmp.diff_main(upEditorCode, bottomEditorCode);
+    setOutputDiff(calculateDiff);
+  }, [])
 
   return (
     <div className="flex h-screen w-screen">
@@ -161,38 +267,12 @@ const CodeAnimation = () => {
       </div>
       <div className="w-1/2 h-full p-2">
         <div className="bg-neutral-700 h-full p-4 whitespace-pre-wrap" >
-          <AnimatedSection html={set} beforeHtlk={before} />
-          {/* <code>
-            <div>
-
-              {output}
-              <Flipper
-                flipKey={flipperData.map((item) => item[1]).join("")}
-                staggerConfig={{
-                  default: {
-                    speed: 0.025,
-                  },
-                }}
-              >
-                <div>
-
-                  {flipperData.map((item) => {
-                    const key = item[2];
-                    const value = item[1];
-
-                    // return value
-
-                    return (
-                      <Flipped key={key} flipId={key}>
-                        <span className="inline-block" dangerouslySetInnerHTML={{ __html: normalizeHTML(value) }}></span>
-                      </Flipped>
-                    );
-                  })}
-                </div>
-              </Flipper>
-            </div>
-          </code> */}
-
+          <AnimatedSection html={set}
+            beforeHtlk={before}
+            befResultRef={befResultRef}
+            aftResultRef={aftResultRef}
+            containerRef={containerRef}
+          />
         </div>
       </div>
     </div>

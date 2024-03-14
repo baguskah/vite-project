@@ -7,6 +7,10 @@ export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement):
     const sequenceElements: HTMLElement[] = [];
     let finalData = []
 
+    if (!data.length) {
+        return finalData
+    }
+
     const listNode = htmlRef.childNodes;
 
     const nodeFound: ChildNode[] = []
@@ -70,11 +74,11 @@ export const dataExample: DOMData[] = [
 ];
 
 
-export function animateDOM(childNodes, positionBefore, positionAfter, containerPosition) {
+export function animateDOMMove(childNodes, positionBefore, positionAfter, containerPosition) {
     const theNode = childNodes;
     if (theNode) {
         const nodeStyle = theNode.style;
-        nodeStyle.color = 'yellow'
+        // nodeStyle.color = 'yellow'
         nodeStyle.position = "absolute";
         nodeStyle.left = `${positionBefore.x - containerPosition.x}px`;
         nodeStyle.top = `${positionBefore.y - containerPosition.y}px`;
@@ -85,5 +89,23 @@ export function animateDOM(childNodes, positionBefore, positionAfter, containerP
         theNode.style.left = positionAfter.x - containerPosition.x + 'px';
         theNode.style.top = positionAfter.y - containerPosition.y + 'px';
     }, 1000); // Delay in milliseconds (adjust as needed)
+}
+
+export function animateDOMAppear(childNodes, positionAfter, containerPosition) {
+    const theNode = childNodes;
+    if (theNode) {
+        const nodeStyle = theNode.style;
+        // nodeStyle.color = 'yellow'
+        nodeStyle.position = "absolute";
+        theNode.style.left = positionAfter.x - containerPosition.x + 'px';
+        theNode.style.top = positionAfter.y - containerPosition.y + 'px';
+        theNode.style.opacity = 0;
+
+    }
+
+    setTimeout(() => {
+        theNode.style.opacity = 1;
+        theNode.style.transition = 'opacity 2s';
+    }, 2000); // Delay in milliseconds (adjust as needed)
 }
 
