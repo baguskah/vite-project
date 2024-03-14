@@ -1,7 +1,7 @@
 import React, { LegacyRef, MutableRefObject, useEffect, useRef } from "react"
 import aceTokenizer from "ace-code/src/ext/simple_tokenizer"
 import { JavaScriptHighlightRules } from "ace-code/src/mode/javascript_highlight_rules";
-import { dataExample, selectElementsInSequence } from './helpers/selectElementInSequence'
+import { DOMData, animateDOM, dataExample, selectElementsInSequence } from './helpers/selectElementInSequence'
 
 import "ace-builds/src-noconflict/theme-one_dark";
 
@@ -11,6 +11,7 @@ const dmp = new DiffMatchPatch();
 export default function AnimatedSection({ html, beforeHtlk }) {
   const befRef = useRef()
   const aftRef = useRef()
+  const containerRef = useRef()
 
   const differ = [
     [
@@ -35,26 +36,30 @@ export default function AnimatedSection({ html, beforeHtlk }) {
     ]
   ]
 
-  /**List yang bertahan dan pindah */
-  // Bentuk Dom dengan tokenizer
-  // Capture Position Sebelum ambil getBoundingClientRect()
-  // Capture Position Sesudah ambil getBoundingClientRect()
+
 
   useEffect(() => {
-    const htmlBefore = befRef.current;
-    const htmlAfter = aftRef.current;
+    const htmlBefore = befRef.current as unknown as HTMLElement;
+    const htmlAfter = aftRef.current as unknown as HTMLElement;
+    const htmlContainer = containerRef.current as unknown as HTMLElement;
+    const containerPosition = htmlContainer.getBoundingClientRect()
 
-    const test = selectElementsInSequence(dataExample, htmlAfter)
-    console.log('debug test', test);
+
+    const listNodeMoving: any = [];
 
     differ.forEach(element => {
       const isPersist = element[0] === 0;
       const codeValue = element[1] as string;
 
       const breakDown = aceTokenizer.tokenize(codeValue, new JavaScriptHighlightRules());
-      // filter listArray contain
-      const listClassAndValue: Record<string, string | number>[] = []
 
+      // filter listArray, eliminate Token Result that only give []
+      const listClassAndValue: DOMData[] = []
+
+      /**List yang bertahan dan pindah */
+      // Bentuk Dom dengan tokenizer
+      // Capture Position Sebelum ambil getBoundingClientRect()
+      // Capture Position Sesudah ambil getBoundingClientRect()
       if (isPersist) {
         const newBreakdownFiltered = breakDown.forEach(arr => {
           if (arr.length > 0) {
@@ -65,19 +70,48 @@ export default function AnimatedSection({ html, beforeHtlk }) {
             })
           }
         })
-        console.log('debug listClassAndValue', listClassAndValue);
+
+        const searchBefore = selectElementsInSequence(listClassAndValue, htmlBefore);
+        const searchAfter = selectElementsInSequence(listClassAndValue, htmlAfter)
+
+        const reNormalized = listClassAndValue.map((l, i) => {
+          const domBefore = searchBefore?.[i];
+          const positionBefore = domBefore?.position;
+
+          const domAfter = searchAfter?.[i];
+          const positionAfter = domAfter?.position;
+
+          return {
+            ...l,
+            domBefore,
+            domAfter,
+            positionBefore,
+            positionAfter
+          }
+        })
+
+        reNormalized.forEach(nd => {
+          listNodeMoving.push(nd)
+        })
       }
     });
 
+    if (listNodeMoving.length === 0) {
+      return
+    }
 
-
-
+    listNodeMoving.forEach(chlNode => {
+      console.log('debug chlNode.chlNode', chlNode);
+      if (chlNode.domAfter) {
+        animateDOM(chlNode.domAfter.node, chlNode.positionBefore, chlNode.positionAfter, containerPosition)
+      }
+    });
 
   }, [])
 
 
   return (
-    <div className="ace_editor ace-one-dark h-full " style={{ overflow: 'visible', position: 'relative' }}>
+    <div ref={containerRef} className="ace_editor ace-one-dark h-full" id="container-animation" style={{ overflow: 'visible', position: 'relative' }}>
       <div id="before" ref={befRef} dangerouslySetInnerHTML={{ __html: beforeHtlk }}></div>
       <div id="after" ref={aftRef} dangerouslySetInnerHTML={{ __html: html }}></div>
     </div>

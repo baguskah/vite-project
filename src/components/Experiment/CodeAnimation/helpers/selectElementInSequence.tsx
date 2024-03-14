@@ -1,9 +1,7 @@
-interface DOMData {
+export interface DOMData {
     className: string;
     value: string;
 }
-
-
 
 export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement): HTMLElement[] | null {
     const sequenceElements: HTMLElement[] = [];
@@ -16,6 +14,10 @@ export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement):
     Array.from(listNode).forEach(lineNode => {
         const listNode = lineNode.childNodes;
         const onlySpanInOneLine = Array.from(listNode).filter(v => v.nodeName === "SPAN");
+
+        if (!onlySpanInOneLine.length) {
+            return;
+        }
 
         const startDataSearch = data[0]
         const startClassName = startDataSearch.className;
@@ -67,4 +69,21 @@ export const dataExample: DOMData[] = [
     }
 ];
 
+
+export function animateDOM(childNodes, positionBefore, positionAfter, containerPosition) {
+    const theNode = childNodes;
+    if (theNode) {
+        const nodeStyle = theNode.style;
+        nodeStyle.color = 'yellow'
+        nodeStyle.position = "absolute";
+        nodeStyle.left = `${positionBefore.x - containerPosition.x}px`;
+        nodeStyle.top = `${positionBefore.y - containerPosition.y}px`;
+        nodeStyle.transition = 'left 2s, top 2s';
+    }
+
+    setTimeout(() => {
+        theNode.style.left = positionAfter.x - containerPosition.x + 'px';
+        theNode.style.top = positionAfter.y - containerPosition.y + 'px';
+    }, 1000); // Delay in milliseconds (adjust as needed)
+}
 
