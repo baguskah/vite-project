@@ -11,7 +11,7 @@ import "highlight.js/styles/atom-one-dark.css";
 
 import aceTokenizer from "ace-code/src/ext/simple_tokenizer"
 import { JavaScriptHighlightRules } from "ace-code/src/mode/javascript_highlight_rules";
-import { DOMData, animateDOMAppear, animateDOMMove, dataExample, selectElementsInSequence } from './helpers/selectElementInSequence'
+import { DOMData, animateDOMAppear, animateDOMMove, dataExample, searchNormPositionBasedOnValueToken, searchPositionBasedOnValueToken, selectElementsInSequence } from './helpers/selectElementInSequence'
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-one_dark";
@@ -29,13 +29,19 @@ const normalizeHTML = (text: string) => {
 
 const dmp = new DiffMatchPatch();
 
-const CodeAnimation = () => {
-  const [outputDiff, setOutputDiff] = useState<any>([]);
+type outputDiff = [0 | 1 | -1, string][]
 
-  const [upEditorCode, setUpEditorCode] = useState(`const isExample = animations.some(() => {})`);
-  const [bottomEditorCode, setBottomEditorCode] = useState(`const isExample = animations.some((animation) => {
-  return animation.looksAwesome()
-})`);
+const CodeAnimation = () => {
+  const [outputDiff, setOutputDiff] = useState<outputDiff>([]);
+
+  const [upEditorCode, setUpEditorCode] = useState(`if (listNodeMoving.length === 0) {
+}
+  `);
+  const [bottomEditorCode, setBottomEditorCode] = useState(`if (listNodeMoving.length === 0) {
+  if (chlNode.domAfter) {
+  }
+}
+  `);
 
   const [before, setBefore] = useState()
   const [set, setSet] = useState()
@@ -88,11 +94,73 @@ const CodeAnimation = () => {
     const listNodeAppear: any = [];
 
     /** Comparation Engine Start */
-    const joinedDiff = outputDiff.map(v => v[1]).join("");
-    const tokenizeunionDiff = aceTokenizer.tokenize(joinedDiff, new JavaScriptHighlightRules());
+    const joinedAllDiff = outputDiff.map(v => v[1]).join("");
+    const tokenizeunionDiff = aceTokenizer.tokenize(joinedAllDiff, new JavaScriptHighlightRules());
     const tokenizeValueBefore = aceTokenizer.tokenize(upEditorCode, new JavaScriptHighlightRules());
     const tokenizeValueAfter = aceTokenizer.tokenize(bottomEditorCode, new JavaScriptHighlightRules());
+
+    // console.log('debug tokenizeValueBefore', tokenizeValueBefore);
+    // console.log('debug tokenizeValueAfter', tokenizeValueAfter);
     /** Comparation Engine End */
+
+
+
+    /**
+     * Create index to find right className and value based on index position and searching new position and old position
+     *  COMPARATION DOM POSITION INDEX DATA SOURCE
+     * */
+
+    // collect all row node tokenize className and value to use in mix and match className
+    const listAllClassAndValueTokenize: DOMData[] = []
+    const listBeforeClassAndValueTokenize: DOMData[] = []
+    const listAfterClassAndValueTokenize: DOMData[] = []
+
+    let indexPostionAll = 0
+
+    tokenizeunionDiff.forEach(lineArr => {
+      lineArr.forEach((token, i) => {
+        listAllClassAndValueTokenize.push({ ...token, idxPosition: indexPostionAll })
+        indexPostionAll++
+      });
+    });
+
+    // BEFORE
+    let indexPositionBefore = 0;
+    tokenizeValueBefore.forEach(lineArr => {
+      lineArr.forEach((token, i) => {
+        listBeforeClassAndValueTokenize.push({ ...token, idxPositionBefore: indexPositionBefore })
+        indexPositionBefore++
+      });
+    });
+
+
+
+    let indexPositionAfter = 0
+    tokenizeValueAfter.forEach(lineArr => {
+      lineArr.forEach((token, i) => {
+        listAfterClassAndValueTokenize.push({ ...token, idxPositionAfter: indexPositionAfter })
+        indexPositionAfter++
+      });
+    });
+
+
+    /**
+    * END Create index to find right className and value based on index position and searching new position and old position
+    *  
+    * */
+
+
+
+
+    const listAllClassWithoutSpaceUndefined: DOMData[] = listAllClassAndValueTokenize.filter(v => v.className !== undefined).map((v, i) => {
+      return {
+        ...v,
+        normPosition: i
+      }
+    })
+
+
+    let indexTargetGetClass = 0;
 
     outputDiff.forEach(element => {
       const isPersist = element[0] === 0;
@@ -102,33 +170,104 @@ const CodeAnimation = () => {
       /** This token not fully match with reality TODO:! */
       const codeValue = element[1] as string;
 
-      const breakDown = aceTokenizer.tokenize(codeValue, new JavaScriptHighlightRules());
-      console.log('debug breakDown', breakDown);
+      /** 
+       * Somehow this tokenize give wrong className Result like suposed to be "argument" -> "identifier" className 
+       * so instead of we take className from tokenize Below, change source of truth classname in listAllClassAndValueTokenize based on index
+       * we take only value from this tokenize
+      */
+      const breakDown: [{ className: string | undefined, value: string }][] = aceTokenizer.tokenize(codeValue, new JavaScriptHighlightRules());
+      /** */
 
       const listClassAndValue: DOMData[] = [];
 
-      // filter listArray, eliminate Token Result that only give empty array
+      // breakdown by value contain all diff from match patcher to take only the value
+      // listAllClassAndValueTokenize contain  all diff tokenized 
+
+      console.log('debug breakDown', breakDown);
+
+      // to detect index if similar word found
+      const similarValueList: { val: string, idx: number }[] = [];
+
       breakDown.forEach(arr => {
         if (arr.length > 0) {
           arr.forEach(objToken => {
-            if (objToken.className !== undefined) {
-              listClassAndValue.push(objToken)
+
+            const spanValue = objToken.value; // THIS IS IMPORTANT VALUE TO DETECT POSITION
+
+            // to store index word if similar word found
+            let indexSimlar = 0
+            const similarWord = similarValueList.filter(word => word.val == spanValue);
+            if (similarWord.length === 0) {
+              similarValueList.push({ val: spanValue, idx: indexSimlar })
             }
+            if (similarWord.length > 0) {
+              const takeLastWordDataIndex = similarWord[similarWord.length - 1].idx;
+              similarValueList.push({ val: spanValue, idx: takeLastWordDataIndex + 1 })
+              indexSimlar = takeLastWordDataIndex + 1
+            }
+
+            const indexSimilarWord = indexSimlar;
+            // end to store index word if similar word found
+
+            const valueByAllClassValueTokenize = listAllClassAndValueTokenize[indexTargetGetClass]
+            const listBeforeTokenizeWithNormPosition = listBeforeClassAndValueTokenize
+              .filter(v => v.className !== undefined)
+              .map((n, i) => ({ ...n, normPosition: i }));
+
+
+            const listAfterTokenizeWithNormPosition = listAfterClassAndValueTokenize
+              .filter(v => v.className !== undefined)
+              .map((n, i) => ({ ...n, normPosition: i }))
+
+            const positionNormBefore = searchNormPositionBasedOnValueToken({
+              value: spanValue,
+              tokenizedSequence: listBeforeTokenizeWithNormPosition,
+              idxSimilarWord: indexSimilarWord
+            })
+
+            const positionNormAfter = searchNormPositionBasedOnValueToken({
+              value: spanValue,
+              tokenizedSequence: listAfterTokenizeWithNormPosition,
+              idxSimilarWord: indexSimilarWord
+            })
+
+            if (valueByAllClassValueTokenize) {
+              listClassAndValue.push({
+                ...valueByAllClassValueTokenize,
+                idxPosition: indexTargetGetClass,
+                positionNormInBefore: positionNormBefore,
+                positionNormInAfter: positionNormAfter
+              })
+            }
+
+            ++indexTargetGetClass
           })
         }
       })
+
+      const listClassAndValueWithNormPosition = listClassAndValue.filter(v => v.className !== undefined).map(w => {
+        const dataGrabAllClass = listAllClassWithoutSpaceUndefined.find(a => a.idxPosition === w.idxPosition)
+        return {
+          ...w,
+          normPosition: dataGrabAllClass?.normPosition
+        }
+      });
+
 
       /**List yang bertahan dan pindah 
        * 1. Bentuk Dom dengan tokenizer
        * 2. Capture Position Sebelum ambil getBoundingClientRect()
        * 3. Capture Position Sesudah ambil getBoundingClientRect()
       */
+
+      // console.log('debug listClassAndValueWithNormPosition', listClassAndValueWithNormPosition);
       if (isPersist) {
-        const searchBefore = selectElementsInSequence(listClassAndValue, htmlBefore);
-        const searchAfter = selectElementsInSequence(listClassAndValue, htmlAfter)
 
+        const searchBefore = selectElementsInSequence(listClassAndValueWithNormPosition, htmlBefore, 'before');
+        const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
 
-        const reNormalized = listClassAndValue.map((l, i) => {
+        const reNormalized = listClassAndValueWithNormPosition.map((l, i) => {
+
           const domBefore = searchBefore?.[i];
           const positionBefore = domBefore?.position;
 
@@ -149,10 +288,11 @@ const CodeAnimation = () => {
         })
       }
 
+
       if (isNew) {
         // Because new is only in after DOM
-        const searchAfter = selectElementsInSequence(listClassAndValue, htmlAfter)
-        const reNormalized = listClassAndValue.map((l, i) => {
+        const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
+        const reNormalized = searchAfter?.map((l, i) => {
 
           const domAfter = searchAfter?.[i];
           const positionAfter = domAfter?.position;
@@ -163,18 +303,19 @@ const CodeAnimation = () => {
             positionAfter
           }
         })
+
         reNormalized.forEach(nd => {
           listNodeAppear.push(nd)
         })
       }
 
-
-
     });
 
-    if (listNodeMoving.length === 0) {
-      return
-    }
+    indexTargetGetClass = 0
+
+    // if (listNodeMoving.length === 0) {
+    //   return
+    // }
 
 
     /** Animate Moving */
@@ -183,6 +324,7 @@ const CodeAnimation = () => {
         animateDOMMove(chlNode.domAfter.node, chlNode.positionBefore, chlNode.positionAfter, containerPosition)
       }
     });
+
 
     /** Animate Appear */
     listNodeAppear.forEach(chlNode => {
