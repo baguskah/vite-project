@@ -162,6 +162,9 @@ const CodeAnimation = () => {
 
     let indexTargetGetClass = 0;
 
+    // to detect index if similar word found
+    const similarValueList: { val: string, idx: number }[] = [];
+
     outputDiff.forEach(element => {
       const isPersist = element[0] === 0;
       const isNew = element[0] === 1;
@@ -183,10 +186,7 @@ const CodeAnimation = () => {
       // breakdown by value contain all diff from match patcher to take only the value
       // listAllClassAndValueTokenize contain  all diff tokenized 
 
-      console.log('debug breakDown', breakDown);
 
-      // to detect index if similar word found
-      const similarValueList: { val: string, idx: number }[] = [];
 
       breakDown.forEach(arr => {
         if (arr.length > 0) {

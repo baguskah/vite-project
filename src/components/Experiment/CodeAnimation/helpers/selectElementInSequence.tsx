@@ -66,6 +66,18 @@ export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement, 
 
     })
 
+
+    // if (searchFor === 'after') {
+    //     console.log('debug dataAfter', data);
+    //     console.log('debug listAllSpanNodeAfter', listAllSpanNode);
+    // }
+
+    // if (searchFor === 'before') {
+    //     console.log('debug dataBefore', data);
+    //     console.log('debug listAllSpanNodeBefore', listAllSpanNode);
+    // }
+
+
     // console.log('debug data.', data);
 
     // listAllSpanNode.forEach((el, i) => {
@@ -73,7 +85,7 @@ export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement, 
     // })
 
     data.forEach(element => {
-        let normPosition = element.normPosition;
+        let normPosition: number | undefined = undefined;
 
         if (searchFor === 'before') {
             normPosition = element.positionNormInBefore
@@ -83,7 +95,10 @@ export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement, 
             normPosition = element.positionNormInAfter
         }
 
-        const theTrulyNodeTarget = listAllSpanNode[normPosition!]
+        const theTrulyNodeTarget = listAllSpanNode[normPosition!];
+
+
+
         if (theTrulyNodeTarget) {
             finalData.push({ ...element, node: theTrulyNodeTarget, position: theTrulyNodeTarget.getBoundingClientRect() })
         }
