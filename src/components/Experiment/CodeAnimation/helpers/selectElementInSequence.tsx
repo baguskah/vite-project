@@ -129,6 +129,7 @@ export const searchNormPositionBasedOnValueToken = ({
 
         // to get index word if similiar word found
         if (findData.length > 1) {
+            console.log('debug idxSimilarWord', idxSimilarWord);
             return findData[idxSimilarWord].normPosition
         }
     }

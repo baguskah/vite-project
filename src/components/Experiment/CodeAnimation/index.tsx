@@ -34,13 +34,16 @@ type outputDiff = [0 | 1 | -1, string][]
 const CodeAnimation = () => {
   const [outputDiff, setOutputDiff] = useState<outputDiff>([]);
 
-  const [upEditorCode, setUpEditorCode] = useState(`if (listNodeMoving.length === 0) {
-}
+  const [upEditorCode, setUpEditorCode] = useState(`l.f((chlNode) => {
+    if (chlNode.domAfter) {
+    }
+  });
   `);
-  const [bottomEditorCode, setBottomEditorCode] = useState(`if (listNodeMoving.length === 0) {
-  if (chlNode.domAfter) {
-  }
-}
+  const [bottomEditorCode, setBottomEditorCode] = useState(`l.f((chlNode) => {
+    if (chlNode.domAfter) {
+      animateDOMAppear();
+    }
+  });    
   `);
 
   const [before, setBefore] = useState()
