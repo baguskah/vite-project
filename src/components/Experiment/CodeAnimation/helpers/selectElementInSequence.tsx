@@ -2,9 +2,10 @@ export interface DOMData {
     className: string;
     value: string;
     idxPosition?: number;
-    normPosition?: number;
-    positionNormInBefore?: number,
-    positionNormInAfter?: number,
+    idxPositionBefore?: number;
+    idxPositionAfter?: number;
+    // positionNormInBefore?: number,
+    // positionNormInAfter?: number,
     statusNumber: -1 | 0 | 1 // -1 ilang 0 tetap 1 muncul
 }
 
@@ -19,8 +20,6 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
 
     const listAllSpanNode: ChildNode[] = []
     const nodeFound: ChildNode[] = []
-    //  console.log('debug takeOutText', takeOutText);
-
 
     Array.from(listNode).forEach(lineNode => {
         const listNode = lineNode.childNodes;
@@ -31,7 +30,14 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
             return;
         }
 
-        onlySpanInOneLine.forEach(arSpan => listAllSpanNode.push(arSpan))
+
+        onlySpanInOneLine.forEach(arSpan => {
+            const classRemove = ["ace_indent-guide"]
+
+            if (!classRemove.includes(arSpan.className)) {
+                listAllSpanNode.push(arSpan)
+            }
+        })
     })
 
 
@@ -39,14 +45,15 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
         let normPosition: number | undefined = undefined;
 
         if (searchFor === 'before') {
-            normPosition = element.positionNormInBefore
+            normPosition = element.idxPositionBefore
         }
 
         if (searchFor === 'after') {
-            normPosition = element.positionNormInAfter
+            normPosition = element.idxPositionAfter
         }
 
         const theTrulyNodeTarget = listAllSpanNode[normPosition!];
+
 
 
 
@@ -73,26 +80,31 @@ export const searchNormPositionBasedOnValueToken = ({
 }) => {
     if (value) {
 
-
         const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
-
-        // if (value === "}") {
-        //     console.log('debug tokenizedSequence', tokenizedSequence);
-        //      console.log('debug data', data);
-        //     console.log('debug spanClassName', spanClassName);
-        // }
 
         if (findData.length === 0) {
             return undefined
         }
 
         if (findData.length === 1) {
-            return findData[0].normPosition
+            if (capture === 'before') {
+                return findData[0].idxPositionBefore
+            }
+
+            if (capture === 'after') {
+                return findData[0].idxPositionAfter
+            }
+
         }
 
         // to get index word if similiar word found
         if (findData.length > 1) {
-            return findData[idxSimilarWord]?.normPosition
+            if (capture === 'before') {
+                return findData[idxSimilarWord]?.idxPositionBefore
+            }
+            if (capture === 'after') {
+                return findData[idxSimilarWord]?.idxPositionAfter
+            }
         }
     }
 }
