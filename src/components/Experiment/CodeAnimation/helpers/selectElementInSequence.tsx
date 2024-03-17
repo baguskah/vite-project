@@ -4,13 +4,14 @@ export interface DOMData {
     idxPosition?: number;
     normPosition?: number;
     positionNormInBefore?: number,
-    positionNormInAfter?: number
+    positionNormInAfter?: number,
+    statusNumber: -1 | 0 | 1 // -1 ilang 0 tetap 1 muncul
 }
 
-export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement, searchFor: 'before' | 'after'): HTMLElement[] | null {
+export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMData[], htmlRef: HTMLElement, searchFor: 'before' | 'after'): HTMLElement[] | null {
     let finalData = []
 
-    if (!data.length) {
+    if (!listClassAndValueWithNormPosition.length) {
         return finalData
     }
 
@@ -31,60 +32,10 @@ export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement, 
         }
 
         onlySpanInOneLine.forEach(arSpan => listAllSpanNode.push(arSpan))
-
-        // END PLAYGROUND
-
-        // const startDataSearch = data[0]
-        // const startClassName = startDataSearch.className;
-        // const startValue = startDataSearch.value
-
-        // const startIndexFind = onlySpanInOneLine.findIndex(spanNode => {
-        //     return spanNode.className === startClassName && spanNode.innerText === startValue
-        // })
-
-        // let found = false;
-
-        // for (let index = 0; index < data.length; index++) {
-        //     const theNode = onlySpanInOneLine[startIndexFind + index];
-
-        //     const isSame = theNode?.className === data[index].className && theNode?.innerText === data[index].value
-        //     if (isSame) {
-        //         nodeFound.push(theNode)
-        //         found = true;
-        //     } else {
-        //         nodeFound.splice(0, nodeFound.length)
-        //         found = false;
-        //         break;
-        //     }
-        // }
-
-        // // Seiringan Urutannya
-        // if (found) {
-        //     finalData = data.map((d, i) => ({ ...d, node: nodeFound[i], position: nodeFound[i].getBoundingClientRect() }));
-        // }
-
-
     })
 
 
-    // if (searchFor === 'after') {
-    //     console.log('debug dataAfter', data);
-    //     console.log('debug listAllSpanNodeAfter', listAllSpanNode);
-    // }
-
-    // if (searchFor === 'before') {
-    //     console.log('debug dataBefore', data);
-    //     console.log('debug listAllSpanNodeBefore', listAllSpanNode);
-    // }
-
-
-    // console.log('debug data.', data);
-
-    // listAllSpanNode.forEach((el, i) => {
-    //     finalData.push({ ...data[i], node: el, position: el.getBoundingClientRect() })
-    // })
-
-    data.forEach(element => {
+    listClassAndValueWithNormPosition.forEach(element => {
         let normPosition: number | undefined = undefined;
 
         if (searchFor === 'before') {
@@ -110,14 +61,26 @@ export function selectElementsInSequence(data: DOMData[], htmlRef: HTMLElement, 
 export const searchNormPositionBasedOnValueToken = ({
     value,
     tokenizedSequence,
-    idxSimilarWord
+    idxSimilarWord,
+    capture,
+    spanClassName
 }: {
     value: string,
     tokenizedSequence: DOMData[],
     idxSimilarWord: number
+    capture: 'after' | 'before',
+    spanClassName: string | undefined
 }) => {
     if (value) {
-        const findData = tokenizedSequence.filter(v => v.value === value);
+
+
+        const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
+
+        // if (value === "}") {
+        //     console.log('debug tokenizedSequence', tokenizedSequence);
+        //      console.log('debug data', data);
+        //     console.log('debug spanClassName', spanClassName);
+        // }
 
         if (findData.length === 0) {
             return undefined
@@ -129,26 +92,10 @@ export const searchNormPositionBasedOnValueToken = ({
 
         // to get index word if similiar word found
         if (findData.length > 1) {
-            console.log('debug idxSimilarWord', idxSimilarWord);
-            return findData[idxSimilarWord].normPosition
+            return findData[idxSimilarWord]?.normPosition
         }
     }
 }
-
-export const dataExample: DOMData[] = [
-    {
-        "className": "ace_paren ace_rparen",
-        "value": ")"
-    },
-    {
-        "className": "ace_storage ace_type",
-        "value": "=>"
-    },
-    {
-        "className": "ace_paren ace_lparen",
-        "value": "{"
-    }
-];
 
 
 export function animateDOMMove(childNodes, positionBefore, positionAfter, containerPosition) {

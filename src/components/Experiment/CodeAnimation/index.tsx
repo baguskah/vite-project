@@ -34,13 +34,13 @@ type outputDiff = [0 | 1 | -1, string][]
 const CodeAnimation = () => {
   const [outputDiff, setOutputDiff] = useState<outputDiff>([]);
 
-  const [upEditorCode, setUpEditorCode] = useState(`l.f((chlNode) => {
-    if (chlNode.domAfter) {
+  const [upEditorCode, setUpEditorCode] = useState(`l.f((c) => {
+    if (c.domAfter) {
     }
   });
   `);
-  const [bottomEditorCode, setBottomEditorCode] = useState(`l.f((chlNode) => {
-    if (chlNode.domAfter) {
+  const [bottomEditorCode, setBottomEditorCode] = useState(`l.f((c) => {
+    if (c.domAfter) {
       animateDOMAppear();
     }
   });    
@@ -97,15 +97,32 @@ const CodeAnimation = () => {
     const listNodeAppear: any = [];
 
     /** Comparation Engine Start */
-    const joinedAllDiff = outputDiff.map(v => v[1]).join("");
+    const storeTokenizePerLine = []
+    const joinedAllDiff = outputDiff.map((v, i) => {
+      const theValue = v[1]
+      const tokenizedAtas = aceTokenizer.tokenize(theValue, new JavaScriptHighlightRules());
+      tokenizedAtas.forEach(tokenize => {
+
+      });
+      console.log('debug tokenizedAtas', tokenizedAtas);
+      return v[1]
+    }).join("");
+
+
+
+
     const tokenizeunionDiff = aceTokenizer.tokenize(joinedAllDiff, new JavaScriptHighlightRules());
+    console.log('debug tokenizeunionDiff', tokenizeunionDiff);
+
+
     const tokenizeValueBefore = aceTokenizer.tokenize(upEditorCode, new JavaScriptHighlightRules());
     const tokenizeValueAfter = aceTokenizer.tokenize(bottomEditorCode, new JavaScriptHighlightRules());
+
+    // console.log('debug tokenizeunionDiff', tokenizeunionDiff);
 
     // console.log('debug tokenizeValueBefore', tokenizeValueBefore);
     // console.log('debug tokenizeValueAfter', tokenizeValueAfter);
     /** Comparation Engine End */
-
 
 
     /**
@@ -118,9 +135,17 @@ const CodeAnimation = () => {
     const listBeforeClassAndValueTokenize: DOMData[] = []
     const listAfterClassAndValueTokenize: DOMData[] = []
 
+    // to detect index if similar word found
+    const similarValueList: { val: string, idx: number, className: string | undefined }[] = [];
+
     let indexPostionAll = 0
 
-    tokenizeunionDiff.forEach(lineArr => {
+    tokenizeunionDiff.forEach((lineArr, idb) => {
+
+      // if (idb === 2) {
+      //   console.log('debug lineArr 2', lineArr);
+      // }
+
       lineArr.forEach((token, i) => {
         listAllClassAndValueTokenize.push({ ...token, idxPosition: indexPostionAll })
         indexPostionAll++
@@ -137,7 +162,7 @@ const CodeAnimation = () => {
     });
 
 
-
+    // AFTER
     let indexPositionAfter = 0
     tokenizeValueAfter.forEach(lineArr => {
       lineArr.forEach((token, i) => {
@@ -165,58 +190,83 @@ const CodeAnimation = () => {
 
     let indexTargetGetClass = 0;
 
-    // to detect index if similar word found
-    const similarValueList: { val: string, idx: number }[] = [];
+    // console.log('debug outputDiff aa', outputDiff.map(v => v[1]));
 
     outputDiff.forEach(element => {
-      const isPersist = element[0] === 0;
-      const isNew = element[0] === 1;
-      const isRemove = element[0] === -1
+      const statusNumber = element[0]
+      const isPersist = statusNumber === 0;
+      const isNew = statusNumber === 1;
+      const isRemove = statusNumber === -1
 
       /** This token not fully match with reality TODO:! */
       const codeValue = element[1] as string;
-
       /** 
        * Somehow this tokenize give wrong className Result like suposed to be "argument" -> "identifier" className 
        * so instead of we take className from tokenize Below, change source of truth classname in listAllClassAndValueTokenize based on index
-       * we take only value from this tokenize
+       * we take only value from this tokenize for "in findTrueClassName Algoritm"
       */
       const breakDown: [{ className: string | undefined, value: string }][] = aceTokenizer.tokenize(codeValue, new JavaScriptHighlightRules());
       /** */
 
+      if (indexTargetGetClass === 21) {
+
+        // tidak bisa disamakan karena kita ingin mengambil className yang sesungguhnya
+        // namun kendala terjadi ketika hasil tokenannya ga sama huhu
+
+        console.log('debug v[1]=', codeValue);
+        // console.log('debug breakDown', breakDown);
+        // console.log('debug arr 21', arr);
+        // console.log('debug objToken', objToken);
+      }
+
       const listClassAndValue: DOMData[] = [];
+
 
       // breakdown by value contain all diff from match patcher to take only the value
       // listAllClassAndValueTokenize contain  all diff tokenized 
-
-
-
-      breakDown.forEach(arr => {
+      breakDown.forEach((arr, indexDebug) => {
         if (arr.length > 0) {
-          arr.forEach(objToken => {
 
+          let indexSimlar = 0
+
+
+          arr.forEach(objToken => {
             const spanValue = objToken.value; // THIS IS IMPORTANT VALUE TO DETECT POSITION
+            // findTrue value of ClassName
+            const valueByAllClassValueTokenize = listAllClassAndValueTokenize[indexTargetGetClass]
+
+            const spanClassName = valueByAllClassValueTokenize?.className;
+
+
+
+            // console.log('debug indexTargetGetClass', `${indexTargetGetClass} = ${spanValue} `);
 
             // to store index word if similar word found
-            let indexSimlar = 0
-            const similarWord = similarValueList.filter(word => word.val == spanValue);
+
+            const similarWord = similarValueList.filter(word => word.val == spanValue && word.className === spanClassName);
+
+            let indexSimilarWord = 0;
+
             if (similarWord.length === 0) {
-              similarValueList.push({ val: spanValue, idx: indexSimlar })
+              similarValueList.push({ val: spanValue, idx: indexSimlar, className: spanClassName })
+              indexSimilarWord = indexSimlar;
             }
+
             if (similarWord.length > 0) {
-              const takeLastWordDataIndex = similarWord[similarWord.length - 1].idx;
-              similarValueList.push({ val: spanValue, idx: takeLastWordDataIndex + 1 })
-              indexSimlar = takeLastWordDataIndex + 1
+
+              // if (spanClassName === "ace_punctuation ace_operator" && spanValue === ".") {
+              //   console.log('debug similarWord', similarWord);
+              // }
+
+              const takeLastWordDataIndex = similarWord[similarWord.length - 1].idx + 1;
+              similarValueList.push({ val: spanValue, idx: takeLastWordDataIndex, className: spanClassName })
+              indexSimilarWord = takeLastWordDataIndex;
             }
 
-            const indexSimilarWord = indexSimlar;
             // end to store index word if similar word found
-
-            const valueByAllClassValueTokenize = listAllClassAndValueTokenize[indexTargetGetClass]
             const listBeforeTokenizeWithNormPosition = listBeforeClassAndValueTokenize
               .filter(v => v.className !== undefined)
               .map((n, i) => ({ ...n, normPosition: i }));
-
 
             const listAfterTokenizeWithNormPosition = listAfterClassAndValueTokenize
               .filter(v => v.className !== undefined)
@@ -225,21 +275,28 @@ const CodeAnimation = () => {
             const positionNormBefore = searchNormPositionBasedOnValueToken({
               value: spanValue,
               tokenizedSequence: listBeforeTokenizeWithNormPosition,
-              idxSimilarWord: indexSimilarWord
+              idxSimilarWord: indexSimilarWord,
+              capture: 'before',
+              spanClassName: spanClassName
             })
 
             const positionNormAfter = searchNormPositionBasedOnValueToken({
               value: spanValue,
               tokenizedSequence: listAfterTokenizeWithNormPosition,
-              idxSimilarWord: indexSimilarWord
+              idxSimilarWord: indexSimilarWord,
+              capture: 'after',
+              spanClassName: spanClassName
             })
+
+
 
             if (valueByAllClassValueTokenize) {
               listClassAndValue.push({
                 ...valueByAllClassValueTokenize,
+                statusNumber: statusNumber,
                 idxPosition: indexTargetGetClass,
                 positionNormInBefore: positionNormBefore,
-                positionNormInAfter: positionNormAfter
+                positionNormInAfter: positionNormAfter,
               })
             }
 
@@ -256,18 +313,37 @@ const CodeAnimation = () => {
         }
       });
 
-
       /**List yang bertahan dan pindah 
        * 1. Bentuk Dom dengan tokenizer
        * 2. Capture Position Sebelum ambil getBoundingClientRect()
        * 3. Capture Position Sesudah ambil getBoundingClientRect()
       */
 
+      // if (codeValue === "}") {
+      //   console.log('debug isPersist', isPersist);
+      // }
+
       // console.log('debug listClassAndValueWithNormPosition', listClassAndValueWithNormPosition);
+
+      // console.log('debug listClassAndValueWithNormPosition', listClassAndValueWithNormPosition);
+
+      const searchBefore = selectElementsInSequence(listClassAndValueWithNormPosition, htmlBefore, 'before');
+      const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
+
+      // console.log('debug searchAfter', searchAfter);
+
       if (isPersist) {
 
-        const searchBefore = selectElementsInSequence(listClassAndValueWithNormPosition, htmlBefore, 'before');
-        const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
+
+
+
+        // if (spanValue) {
+
+        // }
+        // console.log('debug searchBefore', searchBefore);
+        // console.log('debug searchAfter', searchAfter);
+        // console.log('debug searchBefore', searchBefore);
+        // console.log('debug searchAfter', searchAfter);
 
         const reNormalized = listClassAndValueWithNormPosition.map((l, i) => {
 
@@ -314,6 +390,8 @@ const CodeAnimation = () => {
 
     });
 
+
+
     indexTargetGetClass = 0
 
     // if (listNodeMoving.length === 0) {
@@ -330,7 +408,7 @@ const CodeAnimation = () => {
 
 
     /** Animate Appear */
-    listNodeAppear.forEach(chlNode => {
+    listNodeAppear.forEach((chlNode: { domAfter: { node: any; }; positionAfter: any; }) => {
       if (chlNode.domAfter) {
         animateDOMAppear(chlNode.domAfter.node, chlNode.positionAfter, containerPosition)
       }
