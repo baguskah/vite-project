@@ -11,7 +11,7 @@ import "highlight.js/styles/atom-one-dark.css";
 
 import aceTokenizer from "ace-code/src/ext/simple_tokenizer"
 import { JavaScriptHighlightRules } from "ace-code/src/mode/javascript_highlight_rules";
-import { DOMData, animateDOMAppear, animateDOMMove, dataExample, searchNormPositionBasedOnValueToken, searchPositionBasedOnValueToken, selectElementsInSequence } from './helpers/selectElementInSequence'
+import { DOMData, animateDOMAppear, animateDOMHide, animateDOMMove, searchNormPositionBasedOnValueToken, selectElementsInSequence } from './helpers/selectElementInSequence'
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-one_dark";
@@ -36,15 +36,18 @@ const CodeAnimation = () => {
 
   const [upEditorCode, setUpEditorCode] = useState(`l.f((c) => {
     if (c.domAfter) {
-    }
-  });
-  `);
-  const [bottomEditorCode, setBottomEditorCode] = useState(`l.f((c) => {
-    if (c.domAfter) {
       animateDOMAppear();
     }
   });    
   `);
+
+  const [bottomEditorCode, setBottomEditorCode] = useState(`l.f((c) => {
+    if (c.domAfter) {
+    }
+  });
+  `);
+
+  const [data, setData] = useState(new Date())
 
   const [before, setBefore] = useState()
   const [set, setSet] = useState()
@@ -95,6 +98,7 @@ const CodeAnimation = () => {
 
     const listNodeMoving: any = [];
     const listNodeAppear: any = [];
+    const listNodeHide: any = []
 
     /** Comparation Engine Start */
     // const allDiffStringValue: { className: string, value: string }[][] = []
@@ -276,6 +280,40 @@ const CodeAnimation = () => {
       const searchBefore = selectElementsInSequence(listClassAndValueWithNormPosition, htmlBefore, 'before');
       const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
 
+      listClassAndValueWithNormPosition.forEach((l, i) => {
+
+        const domBefore = searchBefore?.[i];
+        const positionBefore = domBefore?.position;
+
+        const domAfter = searchAfter?.[i];
+        const positionAfter = domAfter?.position;
+
+        const status = l.statusNumber;
+        const move = status === 0;
+        const appearing = status === 1;
+        const hide = status === -1
+
+        const dataPush = {
+          ...l,
+          domBefore,
+          domAfter,
+          positionBefore,
+          positionAfter
+        }
+
+        if (move) {
+          listNodeMoving.push(dataPush)
+        }
+
+        if (appearing) {
+          listNodeAppear.push(dataPush)
+        }
+
+        if (hide) {
+          listNodeHide.push(dataPush)
+        }
+      })
+
       if (isPersist) {
         const reNormalized = listClassAndValueWithNormPosition.map((l, i) => {
 
@@ -302,7 +340,6 @@ const CodeAnimation = () => {
 
       if (isNew) {
         // Because new is only in after DOM
-        const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
         const reNormalized = searchAfter?.map((l, i) => {
 
           const domAfter = searchAfter?.[i];
@@ -315,14 +352,46 @@ const CodeAnimation = () => {
           }
         })
 
-        reNormalized.forEach(nd => {
-          listNodeAppear.push(nd)
+        if (reNormalized) {
+          reNormalized.forEach(nd => {
+            listNodeAppear.push(nd)
+          })
+        }
+      }
+
+      if (isRemove) {
+        const reNormalized = searchBefore?.map((l, i) => {
+
+          const domBefore = searchBefore?.[i];
+          const positionBefore = domBefore?.position;
+
+          return {
+            ...l,
+            domBefore,
+            positionBefore
+          }
         })
+
+
+        if (reNormalized) {
+          reNormalized.forEach(nd => {
+            listNodeHide.push(nd)
+          })
+        }
+
       }
 
     });
 
     indexTargetGetClass = 0
+
+
+    // /** Animate Hide */
+    listNodeHide.forEach(chlNode => {
+      if (chlNode.domBefore) {
+        animateDOMHide(chlNode.domBefore.node, chlNode.positionBefore, containerPosition)
+      }
+    });
 
 
     /** Animate Moving */
@@ -339,12 +408,17 @@ const CodeAnimation = () => {
         animateDOMAppear(chlNode.domAfter.node, chlNode.positionAfter, containerPosition)
       }
     });
+
+
+
+
   };
 
   const handleRunCode = async () => {
     const innerHTMLBef = beforeRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
     const innerHTML = editorRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
 
+    setData(new Date())
 
     if (innerHTML) {
       setBefore(innerHTMLBef)
@@ -416,7 +490,9 @@ const CodeAnimation = () => {
       </div>
       <div className="w-1/2 h-full p-2">
         <div className="bg-neutral-700 h-full p-4 whitespace-pre-wrap" >
-          <AnimatedSection html={set}
+          <AnimatedSection
+            key={data}
+            html={set}
             beforeHtlk={before}
             befResultRef={befResultRef}
             aftResultRef={aftResultRef}

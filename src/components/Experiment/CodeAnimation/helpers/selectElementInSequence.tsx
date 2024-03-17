@@ -141,7 +141,25 @@ export function animateDOMAppear(childNodes, positionAfter, containerPosition) {
 
     setTimeout(() => {
         theNode.style.opacity = 1;
-        theNode.style.transition = 'opacity 1s';
+        theNode.style.transition = 'opacity 0.5s';
     }, 2000); // Delay in milliseconds (adjust as needed)
+}
+
+export function animateDOMHide(childNodes, positionBefore, containerPosition) {
+    const theNode = childNodes;
+    if (theNode) {
+        const nodeStyle = theNode.style;
+        nodeStyle.color = 'yellow'
+        nodeStyle.position = "absolute";
+        theNode.style.left = positionBefore.x - containerPosition.x + 'px';
+        theNode.style.top = positionBefore.y - containerPosition.y + 'px';
+        theNode.style.opacity = 1;
+
+    }
+
+    setTimeout(() => {
+        theNode.style.opacity = 0;
+        theNode.style.transition = 'opacity 0.5s';
+    }, 1); // Delay in milliseconds (adjust as needed)
 }
 
