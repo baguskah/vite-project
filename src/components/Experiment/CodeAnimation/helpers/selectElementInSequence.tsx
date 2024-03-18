@@ -54,7 +54,10 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
 
         const theTrulyNodeTarget = listAllSpanNode[normPosition!];
 
-
+        // To do Animation Appear, in DOM after all element will hide
+        if (searchFor === 'after') {
+            theTrulyNodeTarget.style.opacity = 0
+        }
 
 
         if (theTrulyNodeTarget) {
@@ -110,40 +113,13 @@ export const searchNormPositionBasedOnValueToken = ({
 }
 
 
-export function animateDOMMove(childNodes, positionBefore, positionAfter, containerPosition) {
-    const theNode = childNodes;
-    if (theNode) {
-        const nodeStyle = theNode.style;
-        // nodeStyle.color = 'yellow'
-        nodeStyle.position = "absolute";
-        nodeStyle.left = `${positionBefore?.x - containerPosition?.x}px`;
-        nodeStyle.top = `${positionBefore?.y - containerPosition?.y}px`;
-        nodeStyle.transition = 'left 1s, top 1s';
-    }
+/**
+ * Animation Sequence
+ * 1. Removing / Hiding
+ * 2. Move
+ * 3. Appearing 
+ */
 
-    setTimeout(() => {
-        theNode.style.left = positionAfter?.x - containerPosition?.x + 'px';
-        theNode.style.top = positionAfter?.y - containerPosition?.y + 'px';
-    }, 1000); // Delay in milliseconds (adjust as needed)
-}
-
-export function animateDOMAppear(childNodes, positionAfter, containerPosition) {
-    const theNode = childNodes;
-    if (theNode) {
-        const nodeStyle = theNode.style;
-        // nodeStyle.color = 'yellow'
-        nodeStyle.position = "absolute";
-        theNode.style.left = positionAfter.x - containerPosition.x + 'px';
-        theNode.style.top = positionAfter.y - containerPosition.y + 'px';
-        theNode.style.opacity = 0;
-
-    }
-
-    setTimeout(() => {
-        theNode.style.opacity = 1;
-        theNode.style.transition = 'opacity 0.5s';
-    }, 2000); // Delay in milliseconds (adjust as needed)
-}
 
 export function animateDOMHide(childNodes, positionBefore, containerPosition) {
     const theNode = childNodes;
@@ -162,4 +138,47 @@ export function animateDOMHide(childNodes, positionBefore, containerPosition) {
         theNode.style.transition = 'opacity 0.5s';
     }, 1); // Delay in milliseconds (adjust as needed)
 }
+
+
+export function animateDOMMove({ domBefore, domAfter, positionBefore, positionAfter, containerPosition }) {
+    const theNode = domBefore;
+
+    if (theNode) {
+        const nodeStyle = theNode.style;
+        // nodeStyle.color = 'yellow'
+        nodeStyle.position = "absolute";
+        nodeStyle.left = `${positionBefore?.x - containerPosition?.x}px`;
+        nodeStyle.top = `${positionBefore?.y - containerPosition?.y}px`;
+        nodeStyle.transition = 'left 1s, top 1s';
+    }
+
+    setTimeout(() => {
+        theNode.style.left = positionAfter?.x - containerPosition?.x + 'px';
+        theNode.style.top = positionAfter?.y - containerPosition?.y + 'px';
+    }, 1000); // Delay in milliseconds (adjust as needed)
+}
+
+export function animateDOMAppear({ domAfter, positionAfter, containerPosition }) {
+    const theNode = domAfter;
+
+    // Because all element are hide in SearchElementInSequence 
+    // And the parent has 0 opacity, then first make container after 1 opacity
+
+
+    if (theNode) {
+        const nodeStyle = theNode.style;
+        // nodeStyle.color = 'yellow'
+        nodeStyle.position = "absolute";
+        theNode.style.left = positionAfter.x - containerPosition.x + 'px';
+        theNode.style.top = positionAfter.y - containerPosition.y + 'px';
+        theNode.style.opacity = 0;
+
+    }
+
+    setTimeout(() => {
+        theNode.style.opacity = 1;
+        theNode.style.transition = 'opacity 0.5s';
+    }, 2000); // Delay in milliseconds (adjust as needed)
+}
+
 

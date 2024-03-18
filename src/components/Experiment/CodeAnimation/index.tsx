@@ -36,16 +36,14 @@ const CodeAnimation = () => {
 
   const [upEditorCode, setUpEditorCode] = useState(`l.f((c) => {
     if (c.domAfter) {
-      animateDOMAppear();
     }
-  });    
-  `);
+  });`);
 
   const [bottomEditorCode, setBottomEditorCode] = useState(`l.f((c) => {
     if (c.domAfter) {
+      animateDOMAppear();
     }
-  });
-  `);
+  });`);
 
   const [data, setData] = useState(new Date())
 
@@ -169,6 +167,11 @@ const CodeAnimation = () => {
     * */
 
     const listAllClassWithoutSpaceUndefined: DOMData[] = listAllClassAndValueTokenize.filter(v => v.className !== undefined);
+
+    // Because all element are hide in SearchElementInSequence 
+    // And the parent has 0 opacity, then first make container after 1 opacity
+    const containerNode = document.getElementById("after")
+    containerNode.style.opacity = 1
 
 
     let indexTargetGetClass = 0;
@@ -397,7 +400,13 @@ const CodeAnimation = () => {
     /** Animate Moving */
     listNodeMoving.forEach(chlNode => {
       if (chlNode.domAfter) {
-        animateDOMMove(chlNode.domAfter.node, chlNode.positionBefore, chlNode.positionAfter, containerPosition)
+        animateDOMMove({
+          domBefore: chlNode.domBefore.node,
+          domAfter: chlNode.domAfter.node,
+          positionBefore: chlNode.positionBefore,
+          positionAfter: chlNode.positionAfter,
+          containerPosition
+        })
       }
     });
 
@@ -405,7 +414,7 @@ const CodeAnimation = () => {
     /** Animate Appear */
     listNodeAppear.forEach((chlNode: { domAfter: { node: any; }; positionAfter: any; }) => {
       if (chlNode.domAfter) {
-        animateDOMAppear(chlNode.domAfter.node, chlNode.positionAfter, containerPosition)
+        animateDOMAppear({ domAfter: chlNode.domAfter.node, positionAfter: chlNode.positionAfter, containerPosition })
       }
     });
 
