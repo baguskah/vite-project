@@ -7,9 +7,11 @@ export default function AnimatedSection({ html, beforeHtlk, befResultRef, aftRes
   return (
     <div ref={containerRef} className="ace_editor ace-one-dark h-full" id="container-animation" style={{ overflow: 'visible', position: 'relative' }}>
       <div id="before"
-        style={{ position: 'absolute' }}
+        // style={{ position: 'absolute' }}
         ref={befResultRef} dangerouslySetInnerHTML={{ __html: beforeHtlk }}></div>
-      <div id="after" style={{ opacity: 0, position: 'absolute' }} ref={aftResultRef} dangerouslySetInnerHTML={{ __html: html }}></div>
+      <div id="after"
+        // style={{ opacity: 0, position: 'absolute' }} 
+        ref={aftResultRef} dangerouslySetInnerHTML={{ __html: html }}></div>
     </div>
   )
 }

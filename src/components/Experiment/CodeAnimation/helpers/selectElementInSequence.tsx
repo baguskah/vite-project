@@ -1,3 +1,7 @@
+
+import DiffMatchPatch from "diff-match-patch";
+import 'diff-match-patch-line-and-word';
+
 export interface DOMData {
     className: string;
     value: string;
@@ -7,6 +11,21 @@ export interface DOMData {
     // positionNormInBefore?: number,
     // positionNormInAfter?: number,
     statusNumber: -1 | 0 | 1 // -1 ilang 0 tetap 1 muncul
+}
+
+
+export function diffTest(text1, text2) {
+    var dmp = new DiffMatchPatch();
+    var a = dmp.diff_wordMode(text1, text2);
+    // var lineText1 = a.chars1;
+    // var lineText2 = a.chars2;
+    // var lineArray = a.lineArray;
+    // var diffs = dmp.diff_main(lineText1, lineText2);
+    // dmp.diff_charsToLines_(diffs, lineArray);
+
+    console.log('debug a', a);
+
+    return a;
 }
 
 export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMData[], htmlRef: HTMLElement, searchFor: 'before' | 'after'): HTMLElement[] | null {
@@ -55,7 +74,7 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
         const theTrulyNodeTarget = listAllSpanNode[normPosition!];
 
         // To do Animation Appear, in DOM after all element will hide
-        if (searchFor === 'after') {
+        if (searchFor === 'after' && theTrulyNodeTarget) {
             theTrulyNodeTarget.style.opacity = 0
         }
 
@@ -83,7 +102,13 @@ export const searchNormPositionBasedOnValueToken = ({
 }) => {
     if (value) {
 
+
         const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
+        // if (capture === 'after') {
+        //     console.log('debug {data}', { v: value, c: spanClassName });
+        //     console.log('debug findData', findData);
+        // }
+
 
         if (findData.length === 0) {
             return undefined
@@ -125,7 +150,7 @@ export function animateDOMHide(childNodes, positionBefore, containerPosition) {
     const theNode = childNodes;
     if (theNode) {
         const nodeStyle = theNode.style;
-        nodeStyle.color = 'yellow'
+        // nodeStyle.color = 'yellow'
         nodeStyle.position = "absolute";
         theNode.style.left = positionBefore.x - containerPosition.x + 'px';
         theNode.style.top = positionBefore.y - containerPosition.y + 'px';
@@ -150,12 +175,14 @@ export function animateDOMMove({ domBefore, domAfter, positionBefore, positionAf
         nodeStyle.left = `${positionBefore?.x - containerPosition?.x}px`;
         nodeStyle.top = `${positionBefore?.y - containerPosition?.y}px`;
         nodeStyle.transition = 'left 1s, top 1s';
+
+        setTimeout(() => {
+            theNode.style.left = positionAfter?.x - containerPosition?.x + 'px';
+            theNode.style.top = positionAfter?.y - containerPosition?.y + 'px';
+        }, 1000); // Delay in milliseconds (adjust as needed)
     }
 
-    setTimeout(() => {
-        theNode.style.left = positionAfter?.x - containerPosition?.x + 'px';
-        theNode.style.top = positionAfter?.y - containerPosition?.y + 'px';
-    }, 1000); // Delay in milliseconds (adjust as needed)
+
 }
 
 export function animateDOMAppear({ domAfter, positionAfter, containerPosition }) {
@@ -180,5 +207,3 @@ export function animateDOMAppear({ domAfter, positionAfter, containerPosition })
         theNode.style.transition = 'opacity 0.5s';
     }, 2000); // Delay in milliseconds (adjust as needed)
 }
-
-

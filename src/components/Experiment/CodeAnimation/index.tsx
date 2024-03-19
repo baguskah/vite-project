@@ -11,7 +11,7 @@ import "highlight.js/styles/atom-one-dark.css";
 
 import aceTokenizer from "ace-code/src/ext/simple_tokenizer"
 import { JavaScriptHighlightRules } from "ace-code/src/mode/javascript_highlight_rules";
-import { DOMData, animateDOMAppear, animateDOMHide, animateDOMMove, searchNormPositionBasedOnValueToken, selectElementsInSequence } from './helpers/selectElementInSequence'
+import { DOMData, animateDOMAppear, animateDOMHide, animateDOMMove, diffTest, diff_lineMode, searchNormPositionBasedOnValueToken, selectElementsInSequence } from './helpers/selectElementInSequence'
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-one_dark";
@@ -34,16 +34,17 @@ type outputDiff = [0 | 1 | -1, string][]
 const CodeAnimation = () => {
   const [outputDiff, setOutputDiff] = useState<outputDiff>([]);
 
-  const [upEditorCode, setUpEditorCode] = useState(`l.f((c) => {
-    if (c.domAfter) {
-    }
-  });`);
+  const [upEditorCode, setUpEditorCode] = useState(`if (searchFor === "after" && theTrulyNodeTarget) {
+    theTrulyNodeTarget.style.opacity = 0;
+  }`);
 
-  const [bottomEditorCode, setBottomEditorCode] = useState(`l.f((c) => {
-    if (c.domAfter) {
-      animateDOMAppear();
-    }
-  });`);
+  const [bottomEditorCode, setBottomEditorCode] = useState(`if (theTrulyNodeTarget) {
+    finalData.push({
+      ...element,
+      node: theTrulyNodeTarget,
+      position: theTrulyNodeTarget.getBoundingClientRect(),
+    });
+  }`);
 
   const [data, setData] = useState(new Date())
 
@@ -128,6 +129,7 @@ const CodeAnimation = () => {
 
     let indexPostionAll = 0
 
+
     tokenizeunionDiff.forEach((lineArr, idb) => {
       lineArr.forEach((token, i) => {
         if (token.className !== undefined) {
@@ -176,6 +178,8 @@ const CodeAnimation = () => {
 
     let indexTargetGetClass = 0;
 
+    console.log('debug outputDiff', outputDiff);
+
     outputDiff.forEach(element => {
       const statusNumber = element[0]
       const isPersist = statusNumber === 0;
@@ -190,12 +194,16 @@ const CodeAnimation = () => {
        * we take only value from this tokenize for "in findTrueClassName Algoritm"
       */
       const breakDown: [{ className: string | undefined, value: string }][] = aceTokenizer.tokenize(codeValue, new JavaScriptHighlightRules());
+      // console.log('debug codeValue', codeValue);
+      // console.log('debug breakDown', breakDown);
       /** */
 
       const listClassAndValue: DOMData[] = [];
 
       // breakdown by value contain all diff from match patcher to take only the value
       // listAllClassAndValueTokenize contain  all diff tokenized 
+
+      console.log('debug breakDown', breakDown);
 
       breakDown.forEach((arr) => {
         if (arr.length > 0) {
@@ -204,10 +212,10 @@ const CodeAnimation = () => {
 
           arr.forEach(objToken => {
             const spanValue = objToken.value; // THIS IS IMPORTANT VALUE TO DETECT POSITION
-
             // define only non undefined className because of differences tokenize break and alldiff
             if (objToken.className !== undefined) {
-
+              // console.log('debug listAllClassAndValueTokenize', listAllClassAndValueTokenize);
+              // console.log('debug {data}', { d: spanValue, ci: indexTargetGetClass });
               // findTrue value of ClassName
               const valueByAllClassValueTokenize = listAllClassWithoutSpaceUndefined[indexTargetGetClass]
               const spanClassName = valueByAllClassValueTokenize?.className;
@@ -273,7 +281,6 @@ const CodeAnimation = () => {
       })
 
       const listClassAndValueWithNormPosition = listClassAndValue.filter(v => v.className !== undefined);
-
       /**List yang bertahan dan pindah 
        * 1. Bentuk Dom dengan tokenizer
        * 2. Capture Position Sebelum ambil getBoundingClientRect()
@@ -283,43 +290,49 @@ const CodeAnimation = () => {
       const searchBefore = selectElementsInSequence(listClassAndValueWithNormPosition, htmlBefore, 'before');
       const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
 
-      listClassAndValueWithNormPosition.forEach((l, i) => {
+      // listClassAndValueWithNormPosition.forEach((l, i) => {
 
-        const domBefore = searchBefore?.[i];
-        const positionBefore = domBefore?.position;
+      //   const domBefore = searchBefore?.[i];
+      //   const positionBefore = domBefore?.position;
 
-        const domAfter = searchAfter?.[i];
-        const positionAfter = domAfter?.position;
+      //   const domAfter = searchAfter?.[i];
+      //   const positionAfter = domAfter?.position;
 
-        const status = l.statusNumber;
-        const move = status === 0;
-        const appearing = status === 1;
-        const hide = status === -1
+      //   const status = l.statusNumber;
+      //   const move = status === 0;
+      //   const appearing = status === 1;
+      //   const hide = status === -1
 
-        const dataPush = {
-          ...l,
-          domBefore,
-          domAfter,
-          positionBefore,
-          positionAfter
-        }
+      //   const dataPush = {
+      //     ...l,
+      //     domBefore,
+      //     domAfter,
+      //     positionBefore,
+      //     positionAfter
+      //   }
 
-        if (move) {
-          listNodeMoving.push(dataPush)
-        }
+      //   if (move) {
+      //     listNodeMoving.push(dataPush)
+      //   }
 
-        if (appearing) {
-          listNodeAppear.push(dataPush)
-        }
+      //   if (appearing) {
+      //     listNodeAppear.push(dataPush)
+      //   }
 
-        if (hide) {
-          listNodeHide.push(dataPush)
-        }
-      })
+      //   if (hide) {
+      //     listNodeHide.push(dataPush)
+      //   }
+      // })
+
 
       if (isPersist) {
         const reNormalized = listClassAndValueWithNormPosition.map((l, i) => {
 
+          // if (l.value === "theTrulyNodeTarget") {
+          //   console.log('debug searchBefore', searchBefore);
+          //   console.log('debug l', l);
+          // }
+          // console.log('debug searchBefore', searchBefore);
           const domBefore = searchBefore?.[i];
           const positionBefore = domBefore?.position;
 
@@ -340,13 +353,13 @@ const CodeAnimation = () => {
         })
       }
 
-
       if (isNew) {
         // Because new is only in after DOM
         const reNormalized = searchAfter?.map((l, i) => {
 
           const domAfter = searchAfter?.[i];
           const positionAfter = domAfter?.position;
+
 
           return {
             ...l,
@@ -388,6 +401,7 @@ const CodeAnimation = () => {
 
     indexTargetGetClass = 0
 
+    // console.log('debug listNodeMoving', listNodeMoving);
 
     // /** Animate Hide */
     listNodeHide.forEach(chlNode => {
@@ -396,12 +410,11 @@ const CodeAnimation = () => {
       }
     });
 
-
     /** Animate Moving */
     listNodeMoving.forEach(chlNode => {
       if (chlNode.domAfter) {
         animateDOMMove({
-          domBefore: chlNode.domBefore.node,
+          domBefore: chlNode.domBefore?.node,
           domAfter: chlNode.domAfter.node,
           positionBefore: chlNode.positionBefore,
           positionAfter: chlNode.positionAfter,
@@ -434,9 +447,18 @@ const CodeAnimation = () => {
       setSet(innerHTML)
     }
 
+    // const test = diffTest(upEditorCode, bottomEditorCode)
+    // console.log('debug test', test);
     const calculateDiff = dmp.diff_main(upEditorCode, bottomEditorCode);
+    // console.log('debug calculateDiff', calculateDiff);
+    dmp.diff_cleanupSemantic(calculateDiff)
     setOutputDiff(calculateDiff);
+
+    // console.log('debug dmp.diff_cleanupSemantic(diff);',);
+    // console.log('debug calculateDiff', calculateDiff);
   };
+
+  console.log('debug outputDiff', outputDiff);
 
   useEffect(() => {
     const calculateDiff = dmp.diff_main(upEditorCode, bottomEditorCode);
