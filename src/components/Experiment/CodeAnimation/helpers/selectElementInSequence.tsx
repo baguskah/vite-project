@@ -23,7 +23,7 @@ export function diffTest(text1, text2) {
     // var diffs = dmp.diff_main(lineText1, lineText2);
     // dmp.diff_charsToLines_(diffs, lineArray);
 
-    console.log('debug a', a);
+    // console.log('debug a', a);
 
     return a;
 }
@@ -34,6 +34,8 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
     if (!listClassAndValueWithNormPosition.length) {
         return finalData
     }
+
+
 
     const listNode = htmlRef.childNodes;
 
@@ -58,6 +60,14 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
             }
         })
     })
+
+    // if (searchFor === "after") {
+    //     console.log('debug listAllSpanNode after', listAllSpanNode);
+    // }
+
+    // if (searchFor === "before") {
+    //     console.log('debug listAllSpanNode before', listAllSpanNode);
+    // }
 
 
     listClassAndValueWithNormPosition.forEach(element => {
@@ -104,9 +114,9 @@ export const searchNormPositionBasedOnValueToken = ({
 
 
         const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
-        // if (capture === 'after') {
-        //     console.log('debug {data}', { v: value, c: spanClassName });
-        //     console.log('debug findData', findData);
+        // if (capture === 'after' && value === "theTrulyNodeTarget") {
+        //     console.log('debug {data}', { v: value, c: spanClassName, idxSimilarWord, findData });
+
         // }
 
 
@@ -206,4 +216,12 @@ export function animateDOMAppear({ domAfter, positionAfter, containerPosition })
         theNode.style.opacity = 1;
         theNode.style.transition = 'opacity 0.5s';
     }, 2000); // Delay in milliseconds (adjust as needed)
+}
+
+
+export function removeObjectFromArray(arr, { value, className }) {
+    const index = arr.findIndex(obj => obj.value === value && obj.className === className);
+    if (index !== -1) {
+        arr.splice(index, 1);
+    }
 }
