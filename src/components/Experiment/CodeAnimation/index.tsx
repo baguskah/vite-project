@@ -399,7 +399,7 @@ const CodeAnimation = () => {
 
 
       // if (codeValue === "theTrulyNodeTarget") {
-      console.log('debug codeValue', { codeValue, listClassAndValueWithNormPosition });
+      console.log('debug searchBefore', { codeValue, searchBefore });
       // }
 
 
