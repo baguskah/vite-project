@@ -61,9 +61,9 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
         })
     })
 
-    // if (searchFor === "after") {
-    //     console.log('debug listAllSpanNode after', listAllSpanNode);
-    // }
+    if (searchFor === "before") {
+        // console.log('debug listClassAndValueWithNormPosition before', listClassAndValueWithNormPosition);
+    }
 
 
     listClassAndValueWithNormPosition.forEach(element => {
@@ -116,7 +116,7 @@ export const searchNormPositionBasedOnValueToken = ({
 
 
         const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
-        if (value === "(") {
+        if (value === ";") {
             // console.log('debug findData', value, findData, idxSimilarWord);
             // console.log('debug {data}', { v: value, c: spanClassName, idxSimilarWord, findData, tokenizedSequence });
         }
@@ -201,7 +201,7 @@ export function animateDOMMove({ domBefore, domAfter, positionBefore, positionAf
         setTimeout(() => {
             theNode.style.left = positionAfter?.x - containerPosition?.x + 'px';
             theNode.style.top = positionAfter?.y - containerPosition?.y + 'px';
-        }, 2000); // Delay in milliseconds (adjust as needed)
+        }, 1000); // Delay in milliseconds (adjust as needed)
 
 
     }

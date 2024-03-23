@@ -275,10 +275,10 @@ const CodeAnimation = () => {
                   const getLastDataIndex = findSimilarUnion[findSimilarUnion.length - 1].idx + 1;
                   valueByAllClassValueTokenize = filterInAfter[getLastDataIndex]
                   spanClassName = valueByAllClassValueTokenize.className
-                  // console.log('debug getLastDataIndex', { spanValue, spanClassName, statusNumber, getLastDataIndex, filterInAfter, similarValueForFindClassName });
                 }
               }
 
+              // console.log('debug getLastDataIndex', { spanValue, spanClassName, statusNumber, similarValueForFindClassName });
               // return result truely ClassName Value
               // end find true value className
 
@@ -288,17 +288,21 @@ const CodeAnimation = () => {
 
               let indexSimilarWordAndClassName = 0;
 
-              if (statusNumber !== -1) { // detect only in afterDOM
-                if (similarWord.length === 0) {
-                  similarValueList.push({ val: spanValue, idx: indexSimlar, className: spanClassName })
-                  indexSimilarWordAndClassName = indexSimlar;
-                }
+              // if (statusNumber !== -1) { // detect only in afterDOM
+              if (similarWord.length === 0) {
+                similarValueList.push({ val: spanValue, idx: indexSimlar, className: spanClassName })
+                indexSimilarWordAndClassName = indexSimlar;
+              }
 
-                if (similarWord.length > 0) {
-                  const takeLastWordDataIndex = similarWord[similarWord.length - 1].idx + 1;
-                  similarValueList.push({ val: spanValue, idx: takeLastWordDataIndex, className: spanClassName })
-                  indexSimilarWordAndClassName = takeLastWordDataIndex;
-                }
+              if (similarWord.length > 0) {
+                const takeLastWordDataIndex = similarWord[similarWord.length - 1].idx + 1;
+                similarValueList.push({ val: spanValue, idx: takeLastWordDataIndex, className: spanClassName })
+                indexSimilarWordAndClassName = takeLastWordDataIndex;
+              }
+              // }
+
+              if (spanValue === ";") {
+                console.log('debug data', similarWord);
               }
 
 
@@ -319,6 +323,7 @@ const CodeAnimation = () => {
                 spanClassName: spanClassName
               })
 
+
               const positionNormAfter = searchNormPositionBasedOnValueToken({
                 value: spanValue,
                 tokenizedSequence: listAfterTokenizeWithNormPosition,
@@ -327,9 +332,7 @@ const CodeAnimation = () => {
                 spanClassName: spanClassName
               })
 
-              if (spanValue === "push") {
-                // console.log('debug data', data);
-              }
+
 
               if (valueByAllClassValueTokenize) {
                 listClassAndValue.push({
@@ -365,7 +368,10 @@ const CodeAnimation = () => {
       // console.log('debug searchBefore', { codeValue, searchBefore });
       // }
 
+
+      // if (codeValue === ";") {
       // console.log('debug listClassAndValueWithNormPosition', listClassAndValueWithNormPosition);
+      // }
 
       listClassAndValueWithNormPosition.forEach((l, i) => {
 
@@ -390,9 +396,9 @@ const CodeAnimation = () => {
           positionAfter
         }
 
-        if (l.value === "(") {
-          // console.log('debug dataPush', dataPush);
-        }
+        // if (l.value === ";") {
+        //   console.log('debug l', l);
+        // }
 
         // if (l.value === "if") {
         //   console.log('debug dataPush', dataPush);
@@ -499,7 +505,6 @@ const CodeAnimation = () => {
       }
     });
 
-    console.log('debug listNodeMoving', listNodeMoving);
     /** Animate Moving */
     listNodeMoving.forEach(chlNode => {
 
@@ -592,8 +597,8 @@ const CodeAnimation = () => {
           </button>
           <button
             onClick={() => {
-              setUpEditorCode(`const isExample = animations.some(() => {})`)
-              setBottomEditorCode(`const isExample = animations.some((animation) => {
+              setBottomEditorCode(`const isExample = animations.some(() => {})`)
+              setUpEditorCode(`const isExample = animations.some((animation) => {
               return animation.looksAwesome()
             })`)
             }}
