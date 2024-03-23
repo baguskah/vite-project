@@ -185,10 +185,6 @@ const CodeAnimation = () => {
     let indexTargetGetClassAfter = 0;
 
 
-    let indexSimilarValueOnlyBefore = 0;
-    let indexSimilarValueOnlyAfter = 0;
-
-
     outputDiff.forEach(element => {
       const statusNumber = element[0]
       const isPersist = statusNumber === 0;
@@ -203,9 +199,6 @@ const CodeAnimation = () => {
        * we take only value from this tokenize for "in findTrueClassName Algoritm"
       */
       const breakDown: [{ className: string | undefined, value: string }][] = aceTokenizer.tokenize(codeValue, new JavaScriptHighlightRules());
-
-      // console.log('debug codeValue', codeValue);
-      // console.log('debug breakDown', breakDown);
       /** */
 
       const listClassAndValue: DOMData[] = [];
@@ -220,11 +213,8 @@ const CodeAnimation = () => {
 
           arr.forEach(objToken => {
             const spanValue = objToken.value; // THIS IS IMPORTANT VALUE TO DETECT POSITION
-            // console.log('debug spanValue', spanValue);
             // define only non undefined className because of differences tokenize break and alldiff
             if (objToken.className !== undefined) {
-
-
 
               /** 
                * findTrue value of ClassName based before tokenized, and after tokenized 
@@ -236,9 +226,6 @@ const CodeAnimation = () => {
                 * if status Number === 1 (search in after) 
                 * to get the truely className
                 */
-
-
-
               let spanClassName = ''
               let valueByAllClassValueTokenize = { className: '', value: '' }
 
@@ -278,7 +265,6 @@ const CodeAnimation = () => {
                 }
               }
 
-              // console.log('debug getLastDataIndex', { spanValue, spanClassName, statusNumber, similarValueForFindClassName });
               // return result truely ClassName Value
               // end find true value className
 
@@ -300,10 +286,6 @@ const CodeAnimation = () => {
                 indexSimilarWordAndClassName = takeLastWordDataIndex;
               }
               // }
-
-              if (spanValue === ";") {
-                console.log('debug data', similarWord);
-              }
 
 
               // end to store index word if similar word found
@@ -333,7 +315,6 @@ const CodeAnimation = () => {
               })
 
 
-
               if (valueByAllClassValueTokenize) {
                 listClassAndValue.push({
                   ...valueByAllClassValueTokenize,
@@ -351,8 +332,6 @@ const CodeAnimation = () => {
         }
       })
 
-      // console.log('debug listClassAndValue', listClassAndValue);
-
 
       const listClassAndValueWithNormPosition = listClassAndValue.filter(v => v.className !== undefined);
       /**List yang bertahan dan pindah 
@@ -363,15 +342,6 @@ const CodeAnimation = () => {
 
       const searchBefore = selectElementsInSequence(listClassAndValueWithNormPosition, htmlBefore, 'before');
       const searchAfter = selectElementsInSequence(listClassAndValueWithNormPosition, htmlAfter, 'after');
-
-      // if (codeValue === "theTrulyNodeTarget") {
-      // console.log('debug searchBefore', { codeValue, searchBefore });
-      // }
-
-
-      // if (codeValue === ";") {
-      // console.log('debug listClassAndValueWithNormPosition', listClassAndValueWithNormPosition);
-      // }
 
       listClassAndValueWithNormPosition.forEach((l, i) => {
 
@@ -396,21 +366,10 @@ const CodeAnimation = () => {
           positionAfter
         }
 
-        // if (l.value === ";") {
-        //   console.log('debug l', l);
-        // }
-
-        // if (l.value === "if") {
-        //   console.log('debug dataPush', dataPush);
-        // }
 
         if (move) {
           // make sure index position before exist in tokenize before
-          // const isExist = listAllClassBeforeWithoutSpaceUndefined.filter(v => v.idxPositionBefore === l.idxPositionBefore);
-
-          // if (isExist.length > 0) {
           listNodeMoving.push(dataPush)
-          // }
         }
 
         if (appearing) {
@@ -422,83 +381,13 @@ const CodeAnimation = () => {
         }
       })
 
-
-
-      // if (isPersist) {
-      //   const reNormalized = listClassAndValueWithNormPosition.map((l, i) => {
-      //     const domBefore = searchBefore?.[i];
-      //     const positionBefore = domBefore?.position;
-
-      //     const domAfter = searchAfter?.[i];
-      //     const positionAfter = domAfter?.position;
-
-      //     return {
-      //       ...l,
-      //       domBefore,
-      //       domAfter,
-      //       positionBefore,
-      //       positionAfter
-      //     }
-      //   })
-
-      //   reNormalized.forEach(nd => {
-      //     listNodeMoving.push(nd)
-      //   })
-      // }
-
-      // if (isNew) {
-      //   // Because new is only in after DOM
-      //   const reNormalized = searchAfter?.map((l, i) => {
-
-      //     const domAfter = searchAfter?.[i];
-      //     const positionAfter = domAfter?.position;
-
-
-      //     return {
-      //       ...l,
-      //       domAfter,
-      //       positionAfter
-      //     }
-      //   })
-
-      //   if (reNormalized) {
-      //     reNormalized.forEach(nd => {
-      //       listNodeAppear.push(nd)
-      //     })
-      //   }
-      // }
-
-      // if (isRemove) {
-      //   const reNormalized = searchBefore?.map((l, i) => {
-
-      //     const domBefore = searchBefore?.[i];
-      //     const positionBefore = domBefore?.position;
-
-      //     return {
-      //       ...l,
-      //       domBefore,
-      //       positionBefore
-      //     }
-      //   })
-
-
-      //   if (reNormalized) {
-      //     reNormalized.forEach(nd => {
-      //       listNodeHide.push(nd)
-      //     })
-      //   }
-
-      // }
-
     });
 
 
 
     indexTargetGetClass = 0
-    // console.log('debug listAllClassBeforeWithoutSpaceUndefined', listAllClassBeforeWithoutSpaceUndefined);
-    // console.log('debug listNodeMoving', listNodeMoving.filter(v => v.value === ")"));
 
-    // /** Animate Hide */
+    /** Animate Hide */
     listNodeHide.forEach(chlNode => {
       if (chlNode.domBefore) {
         animateDOMHide(chlNode.domBefore.node, chlNode.positionBefore, containerPosition)
@@ -539,19 +428,12 @@ const CodeAnimation = () => {
       setSet(innerHTML)
     }
 
-    const test = diffTest(upEditorCode, bottomEditorCode)
-    // console.log('debug test', test);
     const calculateDiff = dmp.diff_main(upEditorCode.replace(/\s+/g, ' '), bottomEditorCode.replace(/\s+/g, ' '));
-    // console.log('debug test', test);
-    // console.log('debug calculateDiff', calculateDiff);
+
     dmp.diff_cleanupSemantic(calculateDiff)
     setOutputDiff(calculateDiff);
-
-    // console.log('debug dmp.diff_cleanupSemantic(diff);',);
-    // console.log('debug calculateDiff', calculateDiff);
   };
 
-  // console.log('debug outputDiff', outputDiff);
 
   // useEffect(() => {
   //   const calculateDiff = dmp.diff_main(upEditorCode, bottomEditorCode);

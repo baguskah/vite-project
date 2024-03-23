@@ -17,14 +17,6 @@ export interface DOMData {
 export function diffTest(text1, text2) {
     var dmp = new DiffMatchPatch();
     var a = dmp.diff_wordMode(text1, text2);
-    // var lineText1 = a.chars1;
-    // var lineText2 = a.chars2;
-    // var lineArray = a.lineArray;
-    // var diffs = dmp.diff_main(lineText1, lineText2);
-    // dmp.diff_charsToLines_(diffs, lineArray);
-
-    // console.log('debug a', a);
-
     return a;
 }
 
@@ -61,11 +53,6 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
         })
     })
 
-    if (searchFor === "before") {
-        // console.log('debug listClassAndValueWithNormPosition before', listClassAndValueWithNormPosition);
-    }
-
-
     listClassAndValueWithNormPosition.forEach(element => {
         let normPosition: number | undefined = undefined;
 
@@ -80,10 +67,6 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
 
 
         const theTrulyNodeTarget = listAllSpanNode[normPosition!];
-
-        // if (searchFor === "before" && element.value === "theTrulyNodeTarget") {
-        //     console.log('debug {data}', { element, normPosition, listAllSpanNode, theTrulyNodeTarget });
-        // }
 
         // To do Animation Appear, in DOM after all element will hide
         if (searchFor === 'after' && theTrulyNodeTarget) {
@@ -113,14 +96,7 @@ export const searchNormPositionBasedOnValueToken = ({
     spanClassName: string | undefined
 }) => {
     if (value) {
-
-
         const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
-        if (value === ";") {
-            // console.log('debug findData', value, findData, idxSimilarWord);
-            // console.log('debug {data}', { v: value, c: spanClassName, idxSimilarWord, findData, tokenizedSequence });
-        }
-
 
         if (findData.length === 0) {
             return undefined
@@ -190,14 +166,11 @@ export function animateDOMMove({ domBefore, domAfter, positionBefore, positionAf
 
     if (theNode) {
         const nodeStyle = theNode.style;
-        // nodeStyle.color = 'yellow'
         nodeStyle.position = "absolute";
         nodeStyle.left = `${positionBefore?.x - containerPosition?.x}px`;
         nodeStyle.top = `${positionBefore?.y - containerPosition?.y}px`;
         nodeStyle.transition = 'left 1s, top 1s';
 
-
-        // console.log('debug data', { pBefore: positionBefore.x, pAfter: positionAfter.x });
         setTimeout(() => {
             theNode.style.left = positionAfter?.x - containerPosition?.x + 'px';
             theNode.style.top = positionAfter?.y - containerPosition?.y + 'px';
