@@ -1,11 +1,11 @@
 import "./App.css";
 import "./styles/index.css";
-import CEO from "./components/HooksAdvanced/useContext/redux";
+import Thumbnail from "./components/Thumbnail";
 
 function App() {
   return (
     <>
-      <CEO />
+      <Thumbnail />
     </>
   );
 }
