@@ -6,10 +6,10 @@ export interface DOMData {
     className: string;
     value: string;
     idxPosition?: number;
-    idxPositionBeforeOriginal?: number;
-    idxPositionAfterOriginal?: number;
     idxPositionBefore?: number;
     idxPositionAfter?: number;
+    // positionNormInBefore?: number,
+    // positionNormInAfter?: number,
     statusNumber: -1 | 0 | 1 // -1 ilang 0 tetap 1 muncul
 }
 
@@ -17,6 +17,13 @@ export interface DOMData {
 export function diffTest(text1, text2) {
     var dmp = new DiffMatchPatch();
     var a = dmp.diff_wordMode(text1, text2);
+    // var lineText1 = a.chars1;
+    // var lineText2 = a.chars2;
+    // var lineArray = a.lineArray;
+    // var diffs = dmp.diff_main(lineText1, lineText2);
+    // dmp.diff_charsToLines_(diffs, lineArray);
+
+    // console.log('debug a', a);
 
     return a;
 }
@@ -54,6 +61,15 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
         })
     })
 
+    // if (searchFor === "after") {
+    //     console.log('debug listAllSpanNode after', listAllSpanNode);
+    // }
+
+    // if (searchFor === "before") {
+    //     console.log('debug listAllSpanNode before', listAllSpanNode);
+    // }
+
+
     listClassAndValueWithNormPosition.forEach(element => {
         let normPosition: number | undefined = undefined;
 
@@ -65,13 +81,11 @@ export function selectElementsInSequence(listClassAndValueWithNormPosition: DOMD
             normPosition = element.idxPositionAfter
         }
 
-
-
         const theTrulyNodeTarget = listAllSpanNode[normPosition!];
 
         // To do Animation Appear, in DOM after all element will hide
         if (searchFor === 'after' && theTrulyNodeTarget) {
-            theTrulyNodeTarget.style.opacity = 0 // TURN OFF IF DEBUG
+            theTrulyNodeTarget.style.opacity = 0
         }
 
 
@@ -97,25 +111,26 @@ export const searchNormPositionBasedOnValueToken = ({
     spanClassName: string | undefined
 }) => {
     if (value) {
-        const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
 
-        // if (value === "theNode") {
-        //     console.log('debug findData', { value, findData, idxSimilarWord });
+
+        const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
+        // if (capture === 'after' && value === "theTrulyNodeTarget") {
+        //     console.log('debug {data}', { v: value, c: spanClassName, idxSimilarWord, findData });
+
         // }
+
 
         if (findData.length === 0) {
             return undefined
         }
 
-
-
         if (findData.length === 1) {
             if (capture === 'before') {
-                return findData[idxSimilarWord]?.idxPositionBeforeOriginal
+                return findData[0].idxPositionBefore
             }
 
             if (capture === 'after') {
-                return findData[idxSimilarWord]?.idxPositionAfterOriginal
+                return findData[0].idxPositionAfter
             }
 
         }
@@ -123,10 +138,10 @@ export const searchNormPositionBasedOnValueToken = ({
         // to get index word if similiar word found
         if (findData.length > 1) {
             if (capture === 'before') {
-                return findData[idxSimilarWord]?.idxPositionBeforeOriginal
+                return findData[idxSimilarWord]?.idxPositionBefore
             }
             if (capture === 'after') {
-                return findData[idxSimilarWord]?.idxPositionAfterOriginal
+                return findData[idxSimilarWord]?.idxPositionAfter
             }
         }
     }
@@ -145,6 +160,7 @@ export function animateDOMHide(childNodes, positionBefore, containerPosition) {
     const theNode = childNodes;
     if (theNode) {
         const nodeStyle = theNode.style;
+        // nodeStyle.color = 'yellow'
         nodeStyle.position = "absolute";
         theNode.style.left = positionBefore.x - containerPosition.x + 'px';
         theNode.style.top = positionBefore.y - containerPosition.y + 'px';
@@ -162,16 +178,9 @@ export function animateDOMHide(childNodes, positionBefore, containerPosition) {
 export function animateDOMMove({ domBefore, domAfter, positionBefore, positionAfter, containerPosition }) {
     const theNode = domBefore;
 
-    const leftBefore = `${positionBefore?.x - containerPosition?.x}px`;
-    const leftAfter = positionAfter?.x - containerPosition?.x + 'px';
-
-    // if (theNode.innerHTML === "(") {
-    //     console.log('debug data', { leftBefore, leftAfter });
-    // }
-
-
     if (theNode) {
         const nodeStyle = theNode.style;
+        // nodeStyle.color = 'yellow'
         nodeStyle.position = "absolute";
         nodeStyle.left = `${positionBefore?.x - containerPosition?.x}px`;
         nodeStyle.top = `${positionBefore?.y - containerPosition?.y}px`;
@@ -181,8 +190,6 @@ export function animateDOMMove({ domBefore, domAfter, positionBefore, positionAf
             theNode.style.left = positionAfter?.x - containerPosition?.x + 'px';
             theNode.style.top = positionAfter?.y - containerPosition?.y + 'px';
         }, 1000); // Delay in milliseconds (adjust as needed)
-
-
     }
 
 
@@ -217,8 +224,4 @@ export function removeObjectFromArray(arr, { value, className }) {
     if (index !== -1) {
         arr.splice(index, 1);
     }
-}
-
-export function replaceDoubleQuotes(str: string) {
-    return str.replace(/"/g, "'");
 }

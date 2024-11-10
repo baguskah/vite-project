@@ -1,0 +1,65 @@
+{
+    "workbench.colorTheme": "Atom One Dark",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "never"
+    },
+    "editor.fontSize": 20,
+    "editor.lineHeight": 1.6,
+    "editor.lineNumbers": "off",
+    "editor.padding.top": 35,
+    "editor.guides.indentation": false,
+    "workbench.colorCustomizations": {
+      "editor.background": "#141414",
+      "menu.background": "#282828",
+      "sideBar.background": "#232323",
+      "activityBar.background": "#282828",
+      "activityBar.activeBackground": "#202020",
+      "menubar.selectionBackground": "#2d2d2d",
+      "toolbar.activeBackground": "#202020",
+      "tab.activeBackground": "#1e1e1e",
+      "tab.inactiveBackground": "#282828"
+    },
+    "security.workspace.trust.untrustedFiles": "open",
+    "editor.tokenColorCustomizations": {
+      "keywords": "#e999ff",
+      "functions": "#99d1ff",
+      "strings": "#c1ff94",
+      "numbers": "#ffcc9b"
+    },
+    "workbench.iconTheme": "material-icon-theme",
+    "git.enabled": false,
+    "[javascriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "javascript.updateImportsOnFileMove.enabled": "never",
+    "[json]": {
+      "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[dockercompose]": {
+      "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "typescript.updateImportsOnFileMove.enabled": "never",
+    "editor.lightbulb.enabled": "off",
+    "[scss]": {
+      "editor.defaultFormatter": "vscode.css-language-features"
+    },
+    "prisma.showPrismaDataPlatformNotification": false,
+    "window.zoomLevel": -1
+    // "window.zoomLevel": -3
+  }
+  
