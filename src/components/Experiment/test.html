@@ -1,3 +1,5 @@
+const differ = [ [ 0, "function test(){" ], [ 1, "\n console.log({a:123})}\n" ],
+[ 0, "}" ] ] const DOMBefore =
 <div class="ace_line" style="height: 14px; top: 0px">
   <span class="ace_storage ace_type">function</span>
   <span class="ace_entity ace_name ace_function">test</span>
@@ -6,3 +8,65 @@
   <span class="ace_paren ace_lparen">{</span>
   <span class="ace_paren ace_rparen">}</span>
 </div>
+
+const DOMAfter =
+<div>
+  <div class="ace_line" style="height: 14px; top: 0px">
+    <span class="ace_storage ace_type">function</span>
+    <span class="ace_entity ace_name ace_function">test</span>
+    <span class="ace_paren ace_lparen">(</span>
+    <span class="ace_paren ace_rparen">)</span>
+    <span class="ace_paren ace_lparen">{</span>
+  </div>
+  <div class="ace_line" style="height: 14px; top: 14px">
+    <span class="ace_storage ace_type">console</span>
+    <span class="ace_punctuation ace_operator">.</span>
+    <span class="ace_support ace_function ace_firebug">log</span>
+    <span class="ace_paren ace_lparen">([</span>
+    <span class="ace_identifier">a</span>
+    <span class="ace_punctuation ace_operator">:</span>
+    <span class="ace_constant ace_numeric">123</span>
+    <span class="ace_paren ace_rparen">])</span>
+    <span class="ace_paren ace_rparen">}</span>
+  </div>
+  <div class="ace_line" style="height: 14px; top: 28px">
+    <span class="ace_paren ace_rparen">}</span>
+  </div>
+</div>
+
+give me algoritm to know That differ which has 0 value in index 0 is exist and
+the position move ? for example [0,"}"], in the DOMBefore the position of "}"
+character was located in <span class="ace_paren ace_rparen">}</span>, but in
+DOMAfter it located in last <span class="ace_paren ace_rparen">}</span> below
+<div class="ace_line" style="height: 14px; top: 28px"></div>
+instead of <span class="ace_paren ace_rparen">}</span> above ?
+
+<div class="ace_line" style="height: 14px; top: 0px">
+  <span class="ace_storage ace_type">const</span>
+  <span class="ace_identifier">isExample</span>
+  <span class="ace_keyword ace_operator">=</span>
+  <span class="ace_identifier">animations</span>
+  <span class="ace_punctuation ace_operator">.</span>
+  <span class="ace_identifier">some</span>
+  <span class="ace_paren ace_lparen">((</span>
+  <span class="ace_paren ace_rparen">)</span>
+  <span class="ace_storage ace_type">=&gt;</span>
+  <span class="ace_paren ace_lparen">{</span
+  ><span class="ace_paren ace_rparen">})</span>
+</div>
+
+<script>
+  if (theNode) {
+    const nodeStyle = theNode.style;
+    // nodeStyle.color = 'yellow'
+    nodeStyle.position = "absolute";
+    theNode.style.left = positionBefore.x - containerPosition.x + "px";
+    theNode.style.top = positionBefore.y - containerPosition.y + "px";
+    theNode.style.opacity = 1;
+  }
+
+  setTimeout(() => {
+    theNode.style.opacity = 0;
+    theNode.style.transition = "opacity 0.5s";
+  }, 1); // Delay in milliseconds (adjust as needed)
+</script>

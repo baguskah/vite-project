@@ -1,50 +1,24 @@
-export default function Memoization() {
-  /**
-   * 
-   
+import { useMemo } from "react";
+
+const calculateFactorial = (number) => {
+  if (number <= 1) return 1;
+  return number * calculateFactorial(number - 1);
+};
+
+const MyComponent = () => {
+
+
+  const factorial = calculateFactorial(100);
 
 
 
 
 
+  return (
+    <div>
+      <p>Factorial of 100 is: {factorial}</p>
+    </div>
+  );
+};
 
-
-
-
-   */
-
-  const funcCache = {};
-
-  function memoize(fn) {
-    const key = fn.toString();
-    if (!funcCache[key]) {
-      funcCache[key] = fn;
-    }
-    return funcCache[key];
-  }
-
-  const fungsinya = (arg) => arg * 7;
-
-  // di dalam React Lifecycle
-  const fungsi1 = memoize((arg) => arg * 7);
-  const fungsi2 = memoize((arg) => arg * 7);
-  const fungsi3 = memoize((arg) => arg * 7);
-
-  console.log(fungsi1 === fungsi3);
-
-  /**
-   * 
-   
-
-
-
-
-
-
-
-
-  
-   */
-
-  return <h1>Memoization</h1>;
-}
+export default MyComponent;

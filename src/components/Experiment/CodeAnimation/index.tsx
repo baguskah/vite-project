@@ -10,8 +10,10 @@ import hljs from 'highlight.js';
 import "highlight.js/styles/atom-one-dark.css";
 
 import aceTokenizer from "ace-code/src/ext/simple_tokenizer"
-import { JavaScriptHighlightRules } from "ace-code/src/mode/javascript_highlight_rules";
-import { DOMData, animateDOMAppear, animateDOMHide, animateDOMMove, diffTest, diff_lineMode, removeObjectFromArray, searchNormPositionBasedOnValueToken, selectElementsInSequence } from './helpers/selectElementInSequence'
+import Tes from "ace-code/src/mode/tsx_highlight_rules";
+import { DOMData, animateDOMAppear, animateDOMHide, animateDOMMove, diffTest, diff_lineMode, removeObjectFromArray, replaceDoubleQuotes, searchNormPositionBasedOnValueToken, selectElementsInSequence } from './helpers/selectElementInSequence'
+
+
 
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-one_dark";
@@ -20,6 +22,7 @@ import "ace-builds/src-noconflict/theme-one_dark";
 import "ace-builds/src-noconflict/ext-language_tools";
 import AnimatedSection from "./AnimatedSection";
 
+console.log('debug JavaScriptHighlightRules', new Tes.TsxHighlightRules());
 
 const normalizeHTML = (text: string) => {
   // const formattedText = text.replace(/\n/g, '<br/>');
@@ -113,7 +116,6 @@ const CodeAnimation = () => {
     const tokenizeValueAfter: { className: string, value: string }[][] = aceTokenizer.tokenize(bottomEditorCode, new JavaScriptHighlightRules());
     /** Comparation Engine End */
 
-
     /**
      * Create index to find right className and value based on index position and searching new position and old position
      *  COMPARATION DOM POSITION INDEX DATA SOURCE
@@ -127,6 +129,7 @@ const CodeAnimation = () => {
     // to detect index if similar word found
     const similarValueList: { val: string, idx: number, className: string | undefined }[] = [];
     const similarValueForFindClassName: { val: string, idx: number }[] = []
+    const similarValueBeforeForFindClassName: { val: string, idx: number }[] = []
 
 
     let indexPostionAll = 0
@@ -172,6 +175,7 @@ const CodeAnimation = () => {
     const listAllClassBeforeWithoutSpaceUndefined: DOMData[] = listBeforeClassAndValueTokenize.filter(v => v.className !== undefined);
     const listAllClassAfterWithoutSpaceUndefined: DOMData[] = listAfterClassAndValueTokenize.filter(v => v.className !== undefined);
 
+    const copyListAllClassBeforeWithoutSpaceUndefined = [...listAllClassBeforeWithoutSpaceUndefined]
     const copyListAllClassAfterWithoutSpaceUndefined = [...listAllClassAfterWithoutSpaceUndefined]
 
     // Because all element are hide in SearchElementInSequence 
@@ -184,6 +188,7 @@ const CodeAnimation = () => {
     let indexTargetGetClassBefore = 0;
     let indexTargetGetClassAfter = 0;
 
+    console.log('debug outputDiff', outputDiff);
 
     outputDiff.forEach(element => {
       const statusNumber = element[0]
@@ -191,8 +196,13 @@ const CodeAnimation = () => {
       const isNew = statusNumber === 1;
       const isRemove = statusNumber === -1
 
+
+
       /** This token not fully match with reality TODO:! */
-      const codeValue = element[1] as string;
+      const codeValue = element[1].replace(/\s+/g, ' ') as string;
+
+      // console.log('debug codeValue', codeValue);
+
       /** 
        * Somehow this tokenize give wrong className Result like suposed to be "argument" -> "identifier" className 
        * so instead of we take className from tokenize Below, change source of truth classname in listAllClassAndValueTokenize based on index
@@ -206,12 +216,12 @@ const CodeAnimation = () => {
       // breakdown by value contain all diff from match patcher to take only the value
       // listAllClassAndValueTokenize contain  all diff tokenized 
 
-
       breakDown.forEach((arr) => {
         if (arr.length > 0) {
           let indexSimlar = 0;
 
           arr.forEach(objToken => {
+
             const spanValue = objToken.value; // THIS IS IMPORTANT VALUE TO DETECT POSITION
             // define only non undefined className because of differences tokenize break and alldiff
             if (objToken.className !== undefined) {
@@ -230,12 +240,44 @@ const CodeAnimation = () => {
               let valueByAllClassValueTokenize = { className: '', value: '' }
 
               if (statusNumber === 0 || statusNumber === -1) {
-                valueByAllClassValueTokenize = listAllClassBeforeWithoutSpaceUndefined[indexTargetGetClassBefore]
-                spanClassName = listAllClassBeforeWithoutSpaceUndefined[indexTargetGetClassBefore].className
-                indexTargetGetClassBefore++
+                // valueByAllClassValueTokenize = listAllClassBeforeWithoutSpaceUndefined[indexTargetGetClassBefore]
+                // spanClassName = listAllClassBeforeWithoutSpaceUndefined[indexTargetGetClassBefore].className;
+
+                // indexTargetGetClassBefore++
+
+
+
+                // tokenize kandang ga sama index dengan listAllClassBefore
+                // if (statusNumber === -1) {
+                const findSimiliarBefore = similarValueBeforeForFindClassName.filter(v => v.val.replace(/"/g, '') === spanValue.replace(/"/g, ''));
+                if (findSimiliarBefore.length === 0) {
+
+                  const findInBefore = copyListAllClassBeforeWithoutSpaceUndefined.find(v => v.value.replace(/"/g, '') === spanValue.replace(/"/g, ''));
+
+
+                  if (findInBefore) {
+                    valueByAllClassValueTokenize = findInBefore;
+                    spanClassName = findInBefore.className;
+                    similarValueBeforeForFindClassName.push({ val: spanValue, idx: 0 })
+                  }
+                }
+
+                if (findSimiliarBefore.length > 0) {
+                  const filterInBefore = copyListAllClassBeforeWithoutSpaceUndefined.filter(v => v.value.replace(/"/g, '') === spanValue.replace(/"/g, ''))!;
+
+                  if (filterInBefore.length === 1) {
+                    valueByAllClassValueTokenize = filterInBefore[0]
+                    spanClassName = valueByAllClassValueTokenize.className
+                  } else {
+                    const getLastDataIndex = findSimiliarBefore[findSimiliarBefore.length - 1].idx + 1;
+                    valueByAllClassValueTokenize = filterInBefore[getLastDataIndex]
+                    spanClassName = valueByAllClassValueTokenize.className
+                  }
+                }
+                // }
 
                 if (statusNumber === 0) {
-                  const findSimilarUnion = similarValueForFindClassName.filter(v => v.val === spanValue);
+                  const findSimilarUnion = similarValueForFindClassName.filter(v => v.val.replace(/"/g, '') === spanValue.replace(/"/g, ''));
                   if (findSimilarUnion.length === 0) {
                     similarValueForFindClassName.push({ val: spanValue, idx: 0 })
                   }
@@ -247,21 +289,32 @@ const CodeAnimation = () => {
                 }
               }
 
+
+
               if (statusNumber === 1) {
-                const findSimilarUnion = similarValueForFindClassName.filter(v => v.val === spanValue);
+                const findSimilarUnion = similarValueForFindClassName.filter(v => v.val.replace(/"/g, '') === spanValue);
                 if (findSimilarUnion.length === 0) {
-                  const findInAfter = copyListAllClassAfterWithoutSpaceUndefined.find(v => v.value === spanValue)!;
+                  const findInAfter = copyListAllClassAfterWithoutSpaceUndefined.find(v => {
+                    return v.value.replace(/"/g, '') === spanValue.replace(/"/g, '')
+                  });
+
                   valueByAllClassValueTokenize = findInAfter
                   spanClassName = findInAfter.className;
                   similarValueForFindClassName.push({ val: spanValue, idx: 0 })
-                  // console.log('debug getLastDataIndex', { spanValue, spanClassName, statusNumber, getLastDataIndex: 0, findSimilarUnion, similarValueForFindClassName });
+
                 }
 
                 if (findSimilarUnion.length > 0) {
-                  const filterInAfter = copyListAllClassAfterWithoutSpaceUndefined.filter(v => v.value === spanValue)!;
-                  const getLastDataIndex = findSimilarUnion[findSimilarUnion.length - 1].idx + 1;
-                  valueByAllClassValueTokenize = filterInAfter[getLastDataIndex]
-                  spanClassName = valueByAllClassValueTokenize.className
+                  const filterInAfter = copyListAllClassAfterWithoutSpaceUndefined.filter(v => v.value.replace(/"/g, '') === spanValue.replace(/"/g, ''))!;
+
+                  if (filterInAfter.length === 1) {
+                    valueByAllClassValueTokenize = filterInAfter[0]
+                    spanClassName = valueByAllClassValueTokenize.className
+                  } else {
+                    const getLastDataIndex = findSimilarUnion[findSimilarUnion.length - 1].idx + 1;
+                    valueByAllClassValueTokenize = filterInAfter[getLastDataIndex]
+                    spanClassName = valueByAllClassValueTokenize.className
+                  }
                 }
               }
 
@@ -306,6 +359,7 @@ const CodeAnimation = () => {
               })
 
 
+
               const positionNormAfter = searchNormPositionBasedOnValueToken({
                 value: spanValue,
                 tokenizedSequence: listAfterTokenizeWithNormPosition,
@@ -334,6 +388,7 @@ const CodeAnimation = () => {
 
 
       const listClassAndValueWithNormPosition = listClassAndValue.filter(v => v.className !== undefined);
+
       /**List yang bertahan dan pindah 
        * 1. Bentuk Dom dengan tokenizer
        * 2. Capture Position Sebelum ambil getBoundingClientRect()
@@ -421,6 +476,8 @@ const CodeAnimation = () => {
     const innerHTMLBef = beforeRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
     const innerHTML = editorRef?.current?.refEditor?.childNodes[2].children[0].children[2].innerHTML;
 
+    console.log('debug innerHTMLBef', editorRef?.current?.refEditor.childNodes[2]);
+
     setData(new Date())
 
     if (innerHTML) {
@@ -428,10 +485,15 @@ const CodeAnimation = () => {
       setSet(innerHTML)
     }
 
-    const calculateDiff = dmp.diff_main(upEditorCode.replace(/\s+/g, ' '), bottomEditorCode.replace(/\s+/g, ' '));
+    const byWord = diffTest(upEditorCode
+      .replace(/\s+/g, ' ')
+      , (bottomEditorCode
+        .replace(/\s+/g, ' ')
+      ));
 
-    dmp.diff_cleanupSemantic(calculateDiff)
-    setOutputDiff(calculateDiff);
+    // const calculateDiff = dmp.diff_main(upEditorCode.replace(/\s+/g, ' '), bottomEditorCode.replace(/\s+/g, ' '));
+    // dmp.diff_cleanupSemantic(calculateDiff)
+    setOutputDiff(byWord);
   };
 
 

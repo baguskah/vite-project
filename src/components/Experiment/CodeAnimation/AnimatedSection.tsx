@@ -10,7 +10,7 @@ export default function AnimatedSection({ html, beforeHtlk, befResultRef, aftRes
         // style={{ position: 'absolute' }}
         ref={befResultRef} dangerouslySetInnerHTML={{ __html: beforeHtlk }}></div>
       <div id="after"
-        // style={{ opacity: 0, position: 'absolute' }} 
+        // style={{ opacity: 0, position: 'absolute' }}
         ref={aftResultRef} dangerouslySetInnerHTML={{ __html: html }}></div>
     </div>
   )

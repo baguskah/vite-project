@@ -17,6 +17,7 @@ export interface DOMData {
 export function diffTest(text1, text2) {
     var dmp = new DiffMatchPatch();
     var a = dmp.diff_wordMode(text1, text2);
+
     return a;
 }
 
@@ -98,9 +99,15 @@ export const searchNormPositionBasedOnValueToken = ({
     if (value) {
         const findData = tokenizedSequence.filter(v => v.value === value && v.className === spanClassName);
 
+        // if (value === "theNode") {
+        //     console.log('debug findData', { value, findData, idxSimilarWord });
+        // }
+
         if (findData.length === 0) {
             return undefined
         }
+
+
 
         if (findData.length === 1) {
             if (capture === 'before') {
@@ -138,7 +145,6 @@ export function animateDOMHide(childNodes, positionBefore, containerPosition) {
     const theNode = childNodes;
     if (theNode) {
         const nodeStyle = theNode.style;
-        // nodeStyle.color = 'yellow'
         nodeStyle.position = "absolute";
         theNode.style.left = positionBefore.x - containerPosition.x + 'px';
         theNode.style.top = positionBefore.y - containerPosition.y + 'px';
@@ -159,9 +165,9 @@ export function animateDOMMove({ domBefore, domAfter, positionBefore, positionAf
     const leftBefore = `${positionBefore?.x - containerPosition?.x}px`;
     const leftAfter = positionAfter?.x - containerPosition?.x + 'px';
 
-    if (theNode.innerHTML === "(") {
-        console.log('debug data', { leftBefore, leftAfter });
-    }
+    // if (theNode.innerHTML === "(") {
+    //     console.log('debug data', { leftBefore, leftAfter });
+    // }
 
 
     if (theNode) {
@@ -211,4 +217,8 @@ export function removeObjectFromArray(arr, { value, className }) {
     if (index !== -1) {
         arr.splice(index, 1);
     }
+}
+
+export function replaceDoubleQuotes(str: string) {
+    return str.replace(/"/g, "'");
 }
